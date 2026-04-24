@@ -6,166 +6,237 @@
 <title>HR Panel</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-/* ── reset & base ── */
+/* ─── Reset & Tokens ──────────────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:var(--tg-theme-bg-color,#0f0f0f);
-  --bg2:var(--tg-theme-secondary-bg-color,#1c1c1e);
-  --text:var(--tg-theme-text-color,#ffffff);
-  --hint:var(--tg-theme-hint-color,#8e8e93);
-  --link:var(--tg-theme-link-color,#0a84ff);
-  --btn:var(--tg-theme-button-color,#0a84ff);
-  --btn-text:var(--tg-theme-button-text-color,#ffffff);
-  --accent:#30d158;
-  --red:#ff453a;
-  --orange:#ff9f0a;
-  --purple:#bf5af2;
-  --r:14px;
-  --r-sm:10px;
+  --bg:       var(--tg-theme-bg-color,#0f0f0f);
+  --bg2:      var(--tg-theme-secondary-bg-color,#1c1c1e);
+  --bg3:      color-mix(in srgb,var(--bg2) 60%,var(--bg) 40%);
+  --text:     var(--tg-theme-text-color,#ffffff);
+  --hint:     var(--tg-theme-hint-color,#8e8e93);
+  --link:     var(--tg-theme-link-color,#0a84ff);
+  --btn:      var(--tg-theme-button-color,#0a84ff);
+  --btn-text: var(--tg-theme-button-text-color,#ffffff);
+  --accent:   #30d158;
+  --red:      #ff453a;
+  --orange:   #ff9f0a;
+  --purple:   #bf5af2;
+  --r:        14px;
+  --r-sm:     10px;
+  --hdr:      56px;
+  --nav:      52px;
 }
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;font-size:15px;-webkit-font-smoothing:antialiased}
+html,body{height:100%;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif;
+  font-size:15px;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+input,textarea,select{font-family:inherit;font-size:inherit}
+
+/* ─── Layout ──────────────────────────────────────────────────────────────── */
 #app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
-#header{padding:12px 16px 10px;background:var(--bg);border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
-#nav{display:flex;gap:4px;padding:8px 12px;background:var(--bg);border-bottom:1px solid rgba(255,255,255,.07);overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+#header{height:var(--hdr);padding:0 16px;display:flex;align-items:center;
+  justify-content:space-between;background:var(--bg);
+  border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
+#nav{height:var(--nav);display:flex;align-items:center;gap:2px;padding:0 8px;
+  background:var(--bg);border-bottom:1px solid rgba(255,255,255,.07);
+  overflow-x:auto;flex-shrink:0;scrollbar-width:none}
 #nav::-webkit-scrollbar{display:none}
-#content{flex:1;overflow-y:auto;padding:12px 12px 80px;-webkit-overflow-scrolling:touch}
+#content{flex:1;overflow-y:auto;padding:12px 12px 90px;
+  -webkit-overflow-scrolling:touch}
 
-/* ── header ── */
-.h-row{display:flex;align-items:center;justify-content:space-between}
-.h-name{font-size:17px;font-weight:700;letter-spacing:-.3px}
-.h-sub{font-size:12px;color:var(--hint);margin-top:2px}
-.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.3px;text-transform:uppercase}
-.badge.worker{background:rgba(48,209,88,.18);color:var(--accent)}
-.badge.admin{background:rgba(10,132,255,.18);color:var(--link)}
-.badge.superadmin{background:rgba(191,90,242,.18);color:var(--purple)}
+/* ─── Header ──────────────────────────────────────────────────────────────── */
+.h-avatar{width:36px;height:36px;border-radius:50%;background:rgba(10,132,255,.2);
+  color:var(--link);font-size:14px;font-weight:700;display:flex;
+  align-items:center;justify-content:center;flex-shrink:0}
+.h-info{flex:1;padding:0 10px}
+.h-name{font-size:15px;font-weight:700}
+.h-sub{font-size:12px;color:var(--hint);margin-top:1px}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;
+  font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.badge.worker{background:rgba(48,209,88,.15);color:var(--accent)}
+.badge.admin{background:rgba(10,132,255,.15);color:var(--link)}
+.badge.superadmin{background:rgba(191,90,242,.15);color:var(--purple)}
 
-/* ── nav ── */
-.tab{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;color:var(--hint);border:none;background:transparent;transition:all .2s}
+/* ─── Nav Tabs ────────────────────────────────────────────────────────────── */
+.tab{flex-shrink:0;padding:7px 12px;border-radius:20px;font-size:12px;
+  font-weight:500;cursor:pointer;color:var(--hint);border:none;
+  background:transparent;transition:all .2s;white-space:nowrap;
+  -webkit-tap-highlight-color:transparent}
 .tab.active{background:var(--btn);color:var(--btn-text);font-weight:600}
 
-/* ── cards ── */
+/* ─── Cards ───────────────────────────────────────────────────────────────── */
 .card{background:var(--bg2);border-radius:var(--r);padding:16px;margin-bottom:10px}
-.card-title{font-size:12px;font-weight:600;color:var(--hint);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
-.card-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.card-title{font-size:11px;font-weight:600;color:var(--hint);text-transform:uppercase;
+  letter-spacing:.5px;margin-bottom:12px}
+.card-row{display:flex;justify-content:space-between;align-items:center;
+  padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06)}
 .card-row:last-child{border-bottom:none}
 .card-label{font-size:14px;color:var(--hint)}
-.card-value{font-size:14px;font-weight:600}
+.card-value{font-size:14px;font-weight:600;text-align:right;max-width:55%}
+.sep{height:1px;background:rgba(255,255,255,.06);margin:6px 0}
 
-/* ── action grid ── */
-.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.action-btn{background:var(--bg2);border:none;border-radius:var(--r);padding:16px 12px;cursor:pointer;color:var(--text);text-align:center;transition:all .15s;-webkit-tap-highlight-color:transparent}
-.action-btn:active{transform:scale(.96);opacity:.8}
-.action-btn.primary{background:var(--btn);color:var(--btn-text)}
-.action-btn.danger{background:rgba(255,69,58,.15);color:var(--red)}
-.action-btn.warn{background:rgba(255,159,10,.15);color:var(--orange)}
-.action-btn.success{background:rgba(48,209,88,.15);color:var(--accent)}
-.action-btn .btn-icon{font-size:28px;display:block;margin-bottom:6px}
-.action-btn .btn-label{font-size:13px;font-weight:600}
-.action-btn:disabled{opacity:.35;cursor:not-allowed}
-
-/* ── timeline ── */
-.timeline{display:flex;justify-content:space-around;padding:16px 0 8px}
-.tl-item{text-align:center;flex:1}
-.tl-dot{width:36px;height:36px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:18px}
-.tl-dot.done{background:rgba(48,209,88,.2)}
-.tl-dot.active{background:rgba(10,132,255,.2)}
-.tl-dot.empty{background:rgba(255,255,255,.08)}
-.tl-time{font-size:13px;font-weight:600}
-.tl-label{font-size:11px;color:var(--hint);margin-top:2px}
-
-/* ── stats ── */
+/* ─── Stats Row ───────────────────────────────────────────────────────────── */
 .stats-row{display:flex;gap:8px;margin-bottom:10px}
-.stat-box{flex:1;background:var(--bg2);border-radius:var(--r-sm);padding:12px;text-align:center}
-.stat-num{font-size:24px;font-weight:700}
-.stat-lbl{font-size:11px;color:var(--hint);margin-top:2px}
-.stat-box.green .stat-num{color:var(--accent)}
-.stat-box.red .stat-num{color:var(--red)}
-.stat-box.orange .stat-num{color:var(--orange)}
-.stat-box.blue .stat-num{color:var(--link)}
+.stat{flex:1;background:var(--bg2);border-radius:var(--r-sm);padding:12px;text-align:center}
+.stat-n{font-size:26px;font-weight:700}
+.stat-l{font-size:11px;color:var(--hint);margin-top:2px}
+.stat.green .stat-n{color:var(--accent)}
+.stat.red   .stat-n{color:var(--red)}
+.stat.orange.stat-n{color:var(--orange)}
+.stat.blue  .stat-n{color:var(--link)}
 
-/* ── worker list ── */
-.worker-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06)}
-.worker-item:last-child{border-bottom:none}
-.w-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;background:rgba(10,132,255,.2);color:var(--link)}
-.w-info{flex:1;min-width:0}
-.w-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.w-pos{font-size:12px;color:var(--hint);margin-top:2px}
-.w-status{flex-shrink:0}
-.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
-.dot.present{background:var(--accent)}
-.dot.absent{background:rgba(255,255,255,.2)}
-.status-chip{font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px}
-.chip-present{background:rgba(48,209,88,.15);color:var(--accent)}
-.chip-late{background:rgba(255,159,10,.15);color:var(--orange)}
-.chip-absent{background:rgba(255,255,255,.08);color:var(--hint)}
-.chip-lunch{background:rgba(10,132,255,.15);color:var(--link)}
-.chip-pending{background:rgba(255,159,10,.15);color:var(--orange)}
+/* ─── Action Grid ─────────────────────────────────────────────────────────── */
+.act-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.act-btn{background:var(--bg2);border:none;border-radius:var(--r);padding:16px 12px;
+  cursor:pointer;color:var(--text);text-align:center;transition:transform .12s,opacity .12s;
+  -webkit-tap-highlight-color:transparent}
+.act-btn:active{transform:scale(.94);opacity:.75}
+.act-btn.primary {background:var(--btn);color:var(--btn-text)}
+.act-btn.success {background:rgba(48,209,88,.15);color:var(--accent)}
+.act-btn.danger  {background:rgba(255,69,58,.15);color:var(--red)}
+.act-btn.warning {background:rgba(255,159,10,.15);color:var(--orange)}
+.act-btn.purple  {background:rgba(191,90,242,.15);color:var(--purple)}
+.act-btn .aico{font-size:28px;display:block;margin-bottom:6px}
+.act-btn .albl{font-size:13px;font-weight:600}
+.act-btn:disabled{opacity:.32;cursor:not-allowed;transform:none}
+
+/* ─── Timeline ────────────────────────────────────────────────────────────── */
+.timeline{display:flex;justify-content:space-around;padding:14px 0 8px}
+.tl{text-align:center;flex:1}
+.tl-dot{width:38px;height:38px;border-radius:50%;margin:0 auto 6px;
+  display:flex;align-items:center;justify-content:center;font-size:19px}
+.tl-dot.done  {background:rgba(48,209,88,.2)}
+.tl-dot.active{background:rgba(10,132,255,.2)}
+.tl-dot.empty {background:rgba(255,255,255,.08)}
+.tl-time{font-size:13px;font-weight:600}
+.tl-lbl{font-size:11px;color:var(--hint);margin-top:2px}
+
+/* ─── Worker / List Items ─────────────────────────────────────────────────── */
+.list-item{display:flex;align-items:center;gap:12px;padding:11px 0;
+  border-bottom:1px solid rgba(255,255,255,.06)}
+.list-item:last-child{border-bottom:none}
+.list-item.tap{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.list-item.tap:active{opacity:.7}
+.li-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;
+  background:rgba(10,132,255,.18);color:var(--link)}
+.li-info{flex:1;min-width:0}
+.li-name{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li-sub{font-size:12px;color:var(--hint);margin-top:2px}
+.li-right{flex-shrink:0;text-align:right}
+.chevron{color:var(--hint);font-size:18px}
+
+/* ─── Chips ───────────────────────────────────────────────────────────────── */
+.chip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:10px;
+  display:inline-block;white-space:nowrap}
+.chip-present {background:rgba(48,209,88,.15);color:var(--accent)}
+.chip-late    {background:rgba(255,159,10,.15);color:var(--orange)}
+.chip-absent  {background:rgba(255,255,255,.08);color:var(--hint)}
+.chip-lunch   {background:rgba(10,132,255,.15);color:var(--link)}
+.chip-pending {background:rgba(255,159,10,.15);color:var(--orange)}
 .chip-approved{background:rgba(48,209,88,.15);color:var(--accent)}
 .chip-rejected{background:rgba(255,69,58,.15);color:var(--red)}
+.dot-badge{width:9px;height:9px;border-radius:50%;display:inline-block}
+.dot-badge.on{background:var(--accent)}
+.dot-badge.off{background:rgba(255,255,255,.2)}
 
-/* ── history ── */
-.hist-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+/* ─── History ─────────────────────────────────────────────────────────────── */
+.hist-item{display:flex;align-items:center;gap:10px;padding:9px 0;
+  border-bottom:1px solid rgba(255,255,255,.06)}
 .hist-item:last-child{border-bottom:none}
-.hist-date{font-size:13px;color:var(--hint);min-width:60px}
+.hist-date{font-size:13px;color:var(--hint);min-width:64px}
 .hist-times{flex:1;font-size:13px}
-.hist-min{font-size:12px;color:var(--hint)}
+.hist-dur{font-size:12px;color:var(--hint)}
 
-/* ── leave ── */
+/* ─── Leave Card ──────────────────────────────────────────────────────────── */
 .leave-card{background:var(--bg2);border-radius:var(--r);padding:14px;margin-bottom:8px}
-.leave-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.leave-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
 .leave-dates{font-size:15px;font-weight:700}
-.leave-days{font-size:12px;color:var(--hint);margin-top:2px}
-.leave-reason{font-size:13px;color:var(--hint);margin-bottom:10px;line-height:1.4}
-.leave-actions{display:flex;gap:8px}
-.leave-btn{flex:1;padding:9px;border:none;border-radius:var(--r-sm);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
-.leave-btn:active{opacity:.7}
-.leave-btn.approve{background:rgba(48,209,88,.2);color:var(--accent)}
-.leave-btn.reject{background:rgba(255,69,58,.15);color:var(--red)}
+.leave-meta{font-size:12px;color:var(--hint);margin-top:2px}
+.leave-reason{font-size:13px;color:var(--hint);margin-bottom:10px;line-height:1.45}
+.leave-acts{display:flex;gap:8px}
+.la-btn{flex:1;padding:9px;border:none;border-radius:var(--r-sm);
+  font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.la-btn:active{opacity:.7}
+.la-btn.approve{background:rgba(48,209,88,.18);color:var(--accent)}
+.la-btn.reject {background:rgba(255,69,58,.15);color:var(--red)}
 
-/* ── form ── */
-.form-group{margin-bottom:12px}
-.form-label{font-size:12px;font-weight:600;color:var(--hint);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;display:block}
-.form-input{width:100%;background:var(--bg);border:1.5px solid rgba(255,255,255,.12);border-radius:var(--r-sm);padding:12px 14px;color:var(--text);font-size:15px;outline:none;-webkit-appearance:none;color-scheme:dark}
+/* ─── Forms ───────────────────────────────────────────────────────────────── */
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--hint);
+  text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.form-input{width:100%;background:var(--bg);border:1.5px solid rgba(255,255,255,.12);
+  border-radius:var(--r-sm);padding:12px 14px;color:var(--text);font-size:15px;
+  outline:none;-webkit-appearance:none;color-scheme:dark;transition:border-color .2s}
 .form-input:focus{border-color:var(--btn)}
 .form-input::placeholder{color:var(--hint)}
+select.form-input{cursor:pointer}
 textarea.form-input{resize:none;line-height:1.5}
-.submit-btn{width:100%;background:var(--btn);color:var(--btn-text);border:none;border-radius:var(--r);padding:14px;font-size:16px;font-weight:600;cursor:pointer;margin-top:6px;transition:all .15s}
+.form-hint{font-size:12px;color:var(--hint);margin-top:5px}
+.submit-btn{width:100%;background:var(--btn);color:var(--btn-text);border:none;
+  border-radius:var(--r);padding:14px;font-size:16px;font-weight:600;cursor:pointer;
+  margin-top:8px;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
 .submit-btn:active{opacity:.8}
 .submit-btn:disabled{opacity:.4;cursor:not-allowed}
+.danger-btn{width:100%;background:rgba(255,69,58,.15);color:var(--red);border:none;
+  border-radius:var(--r);padding:12px;font-size:15px;font-weight:600;cursor:pointer;
+  margin-top:8px;transition:opacity .15s}
+.danger-btn:active{opacity:.7}
 
-/* ── branch card ── */
-.branch-card{background:var(--bg2);border-radius:var(--r);padding:14px;margin-bottom:8px}
+/* ─── Section header ──────────────────────────────────────────────────────── */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sec-title{font-size:12px;font-weight:600;color:var(--hint);text-transform:uppercase;letter-spacing:.4px}
+.sec-count{font-size:12px;color:var(--hint)}
+.sec-add{font-size:22px;color:var(--btn);cursor:pointer;line-height:1;
+  padding:2px 4px;-webkit-tap-highlight-color:transparent}
+.sec-add:active{opacity:.6}
+
+/* ─── Loading / Empty ─────────────────────────────────────────────────────── */
+.loader{text-align:center;padding:52px 20px;color:var(--hint)}
+.spinner{width:28px;height:28px;border:3px solid rgba(255,255,255,.1);
+  border-top-color:var(--btn);border-radius:50%;
+  animation:spin .65s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:52px 20px;color:var(--hint)}
+.empty-ico{font-size:44px;margin-bottom:12px}
+.empty-txt{font-size:14px;line-height:1.55}
+
+/* ─── Toast ───────────────────────────────────────────────────────────────── */
+#toast{position:fixed;bottom:20px;left:50%;
+  transform:translateX(-50%) translateY(14px);
+  background:rgba(28,28,30,.96);color:#fff;padding:10px 18px;
+  border-radius:24px;font-size:14px;font-weight:500;opacity:0;
+  transition:all .25s;z-index:999;white-space:nowrap;
+  max-width:88vw;text-align:center;
+  backdrop-filter:blur(14px);pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ─── Invite box ──────────────────────────────────────────────────────────── */
+.invite-box{background:rgba(48,209,88,.08);border:1px solid rgba(48,209,88,.3);
+  border-radius:var(--r-sm);padding:12px 14px;margin-top:10px}
+.invite-link{font-size:13px;word-break:break-all;color:var(--accent);margin-bottom:8px}
+.copy-btn{background:rgba(48,209,88,.15);color:var(--accent);border:none;
+  border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer}
+.copy-btn:active{opacity:.7}
+
+/* ─── Misc ────────────────────────────────────────────────────────────────── */
+.branch-card{background:var(--bg2);border-radius:var(--r);padding:14px;margin-bottom:8px;
+  cursor:pointer;-webkit-tap-highlight-color:transparent}
+.branch-card:active{opacity:.75}
 .branch-name{font-size:16px;font-weight:700;margin-bottom:4px}
 .branch-meta{font-size:13px;color:var(--hint)}
-
-/* ── section header ── */
-.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.section-title{font-size:13px;font-weight:600;color:var(--hint);text-transform:uppercase;letter-spacing:.4px}
-.section-count{font-size:13px;font-weight:600;color:var(--hint)}
-
-/* ── loading / empty ── */
-.loader{text-align:center;padding:48px 20px;color:var(--hint);font-size:14px}
-.spinner{width:28px;height:28px;border:3px solid rgba(255,255,255,.1);border-top-color:var(--btn);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
-@keyframes spin{to{transform:rotate(360deg)}}
-.empty{text-align:center;padding:48px 20px;color:var(--hint)}
-.empty-icon{font-size:44px;margin-bottom:12px}
-.empty-text{font-size:14px;line-height:1.5}
-
-/* ── toast ── */
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(28,28,30,.96);color:#fff;padding:10px 18px;border-radius:24px;font-size:14px;font-weight:500;opacity:0;transition:all .25s;z-index:999;white-space:nowrap;max-width:88vw;text-align:center;backdrop-filter:blur(12px);pointer-events:none}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.month-picker{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.month-picker input{flex:1}
 </style>
 </head>
 <body>
 <div id="app">
   <div id="header">
-    <div class="h-row">
-      <div>
-        <div class="h-name" id="hdr-name">HR Panel</div>
-        <div class="h-sub" id="hdr-sub">Yuklanmoqda...</div>
-      </div>
-      <span class="badge" id="hdr-badge"></span>
+    <div class="h-avatar" id="h-av">?</div>
+    <div class="h-info">
+      <div class="h-name" id="h-name">HR Panel</div>
+      <div class="h-sub"  id="h-sub">Yuklanmoqda...</div>
     </div>
+    <span class="badge" id="h-badge"></span>
   </div>
   <div id="nav"></div>
   <div id="content">
@@ -175,31 +246,40 @@ textarea.form-input{resize:none;line-height:1.5}
 <div id="toast"></div>
 
 <script>
-// ════════════════════════════════════════════════════════════════════════
-// CONFIG  —  API_URL ni VPS ga deploy qilgandan keyin yangilang
-// ════════════════════════════════════════════════════════════════════════
-const API_URL = window.HRBOT_API_URL || "https://understanding-plates-feeding-colleague.trycloudflare.com";
+// ════════════════════════════════════════════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════════════════════════════════════════════
+const API = window.HRBOT_API_URL || "https://understanding-plates-feeding-colleague.trycloudflare.com";
+const BOT_USERNAME = "hr_boshqaruv_bot";
 
-// ════════════════════════════════════════════════════════════════════════
-// Telegram WebApp
-// ════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════════════
+//  TELEGRAM SDK
+// ════════════════════════════════════════════════════════════════════════════
 const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 tg.disableVerticalSwipes?.();
 
-// ════════════════════════════════════════════════════════════════════════
-// State
-// ════════════════════════════════════════════════════════════════════════
-let ME   = null;
-let TODAY = null;
+const MB = tg.MainButton;
+const BB = tg.BackButton;
 
-// ════════════════════════════════════════════════════════════════════════
-// API
-// ════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════════════════════════
+const S = {
+  me: null,
+  today: null,
+  activeTab: null,
+  stack: [],        // [{id, data, render}]
+  lookups: {},      // cached: branches, positions, schedules
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+//  API
+// ════════════════════════════════════════════════════════════════════════════
 async function api(path, opts = {}) {
-  const r = await fetch(API_URL + path, {
-    method: opts.method || "GET",
+  const r = await fetch(API + path, {
+    method:  opts.method || "GET",
     headers: {
       "Content-Type": "application/json",
       "Authorization": "tma " + tg.initData,
@@ -208,13 +288,20 @@ async function api(path, opts = {}) {
     body: opts.body ? JSON.stringify(opts.body) : undefined,
   });
   const json = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(json.detail || "Server xatosi");
+  if (!r.ok) throw new Error(json.detail || "Xato yuz berdi");
   return json;
 }
 
-// ════════════════════════════════════════════════════════════════════════
-// Toast
-// ════════════════════════════════════════════════════════════════════════
+async function getLookup(key) {
+  if (S.lookups[key]) return S.lookups[key];
+  const data = await api(`/api/lookup/${key}`);
+  S.lookups[key] = data;
+  return data;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  TOAST & HAPTICS
+// ════════════════════════════════════════════════════════════════════════════
 let _tt;
 function toast(msg) {
   const el = document.getElementById("toast");
@@ -224,538 +311,1224 @@ function toast(msg) {
   _tt = setTimeout(() => el.classList.remove("show"), 3000);
 }
 
-// ════════════════════════════════════════════════════════════════════════
-// Helpers
-// ════════════════════════════════════════════════════════════════════════
-const initials = n => (n||"?").split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase();
+const hap = {
+  ok:    () => tg.HapticFeedback?.notificationOccurred("success"),
+  err:   () => tg.HapticFeedback?.notificationOccurred("error"),
+  light: () => tg.HapticFeedback?.impactOccurred("light"),
+  med:   () => tg.HapticFeedback?.impactOccurred("medium"),
+};
 
-function fmtDate(iso) {
-  if (!iso) return "";
-  const [y,m,d] = iso.split("-");
-  return `${d}.${m}.${y}`;
-}
+// ════════════════════════════════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════════════════════════════════
+const initials = n => (n||"?").split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase();
+const fmtDate  = iso => { if(!iso) return ""; const [y,m,d]=iso.split("-"); return `${d}.${m}.${y}`; };
+const today    = () => new Date().toISOString().slice(0,10);
+const thisMonth= () => new Date().toISOString().slice(0,7);
 
 function statusChip(st, atLunch) {
-  if (atLunch) return `<span class="status-chip chip-lunch">Tushlikda</span>`;
-  const M = {
-    present: ["chip-present","Keldi"],
-    late:    ["chip-late","Kech"],
-    absent:  ["chip-absent","Kelmadi"],
-    on_leave:["chip-approved","Ta'tilda"],
-    holiday: ["chip-approved","Dam olish"],
-  };
-  const [cls, lbl] = M[st] || ["chip-absent","—"];
-  return `<span class="status-chip ${cls}">${lbl}</span>`;
+  if (atLunch) return chip("Tushlikda","chip-lunch");
+  const M = {present:["Keldi","chip-present"],late:["Kech","chip-late"],
+             absent:["Kelmadi","chip-absent"],on_leave:["Ta'tilda","chip-approved"],
+             holiday:["Dam olish","chip-approved"]};
+  const [l,c] = M[st] || ["—","chip-absent"];
+  return chip(l, c);
 }
-
 function leaveChip(st) {
-  const M = {
-    pending:  ["chip-pending","Kutilmoqda"],
-    approved: ["chip-approved","Tasdiqlandi"],
-    rejected: ["chip-rejected","Rad etildi"],
-  };
-  const [cls, lbl] = M[st] || ["chip-absent",st];
-  return `<span class="status-chip ${cls}">${lbl}</span>`;
+  const M = {pending:["Kutilmoqda","chip-pending"],
+             approved:["Tasdiqlandi","chip-approved"],rejected:["Rad etildi","chip-rejected"]};
+  const [l,c] = M[st] || [st,"chip-absent"];
+  return chip(l, c);
+}
+function chip(label, cls) {
+  return `<span class="chip ${cls}">${label}</span>`;
 }
 
-function loading() {
-  return `<div class="loader"><div class="spinner"></div>Yuklanmoqda...</div>`;
-}
+const loading = () => `<div class="loader"><div class="spinner"></div>Yuklanmoqda...</div>`;
+const empty   = (ico,txt) => `<div class="empty"><div class="empty-ico">${ico}</div><div class="empty-txt">${txt}</div></div>`;
+const setContent = html => document.getElementById("content").innerHTML = html;
 
-function empty(icon, text) {
-  return `<div class="empty"><div class="empty-icon">${icon}</div><div class="empty-text">${text}</div></div>`;
-}
-
-// ════════════════════════════════════════════════════════════════════════
-// Navigation
-// ════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════════════
+//  NAVIGATION (tab + stack)
+// ════════════════════════════════════════════════════════════════════════════
 const TABS = {
-  worker: [
-    {id:"home",    icon:"🏠", label:"Bugun"},
-    {id:"history", icon:"📊", label:"Tarix"},
-    {id:"leave",   icon:"🏖", label:"Ta'til"},
-    {id:"profile", icon:"👤", label:"Profil"},
-  ],
-  admin: [
-    {id:"monitoring", icon:"📊", label:"Monitoring"},
-    {id:"workers",    icon:"👥", label:"Xodimlar"},
-    {id:"leaves",     icon:"🏖", label:"Ta'tillar"},
-  ],
-  superadmin: [
-    {id:"sa-stats",    icon:"📈", label:"Umumiy"},
-    {id:"sa-monitor",  icon:"📊", label:"Monitoring"},
-    {id:"sa-workers",  icon:"👥", label:"Xodimlar"},
-    {id:"sa-branches", icon:"🏢", label:"Filiallar"},
-  ],
+  worker:     [{id:"home",ico:"🏠",lbl:"Bugun"},{id:"history",ico:"📅",lbl:"Tarix"},
+               {id:"leave-w",ico:"🏖",lbl:"Ta'til"},{id:"profile",ico:"👤",lbl:"Profil"}],
+  admin:      [{id:"monitoring",ico:"📊",lbl:"Bugun"},{id:"workers-a",ico:"👥",lbl:"Xodimlar"},
+               {id:"leaves-a",ico:"🏖",lbl:"Ta'tillar"},{id:"report",ico:"📈",lbl:"Hisobot"},
+               {id:"att-edit",ico:"✏️",lbl:"Davomat"}],
+  superadmin: [{id:"dashboard",ico:"📈",lbl:"Bosh"},{id:"monitoring",ico:"📊",lbl:"Monitoring"},
+               {id:"workers-sa",ico:"👥",lbl:"Ishchilar"},{id:"branches",ico:"🏢",lbl:"Filiallar"},
+               {id:"positions",ico:"💼",lbl:"Lavozimlar"},{id:"schedules",ico:"⏰",lbl:"Jadvallar"},
+               {id:"admins",ico:"👔",lbl:"Adminlar"},{id:"settings",ico:"⚙️",lbl:"Sozlamalar"}],
 };
 
 function buildNav(role) {
   const tabs = TABS[role] || TABS.worker;
   document.getElementById("nav").innerHTML = tabs.map(t =>
-    `<button class="tab" data-tab="${t.id}" onclick="switchTab('${t.id}')">${t.icon} ${t.label}</button>`
+    `<button class="tab" data-tab="${t.id}" onclick="switchTab('${t.id}')">${t.ico} ${t.lbl}</button>`
   ).join("");
   switchTab(tabs[0].id);
 }
 
 function switchTab(id) {
+  clearStack();
+  S.activeTab = id;
   document.querySelectorAll(".tab").forEach(t =>
-    t.classList.toggle("active", t.dataset.tab === id)
-  );
+    t.classList.toggle("active", t.dataset.tab === id));
   renderTab(id);
 }
 
+function clearStack() {
+  S.stack = [];
+  hideBack();
+  hideMB();
+}
+
+function pushView(renderFn, data = {}) {
+  S.stack.push({renderFn, data});
+  showBack();
+  setContent(loading());
+  renderFn(data).catch(e => setContent(empty("⚠️", e.message)));
+}
+
+function popView() {
+  S.stack.pop();
+  hideMB();
+  if (S.stack.length === 0) {
+    hideBack();
+    renderTab(S.activeTab);
+  } else {
+    const top = S.stack[S.stack.length - 1];
+    setContent(loading());
+    top.renderFn(top.data).catch(e => setContent(empty("⚠️", e.message)));
+  }
+}
+
+function showBack() { BB.show(); BB.onClick(popView); }
+function hideBack() { BB.hide(); BB.offClick(popView); }
+
+function showMB(text, fn, color) {
+  MB.setText(text);
+  if (color) { MB.color = color; }
+  MB.onClick(fn);
+  MB.show();
+}
+function hideMB() { MB.hide(); MB.offClick(); }
+
 async function renderTab(id) {
-  const el = document.getElementById("content");
-  el.innerHTML = loading();
+  setContent(loading());
   try {
-    switch (id) {
-      case "home":       await renderHome(el);       break;
-      case "history":    await renderHistory(el);    break;
-      case "leave":      await renderLeave(el);      break;
-      case "profile":         renderProfile(el);     break;
-      case "monitoring": await renderMonitoring(el); break;
-      case "sa-monitor": await renderMonitoring(el); break;
-      case "workers":    await renderWorkers(el);    break;
-      case "sa-workers": await renderWorkers(el);    break;
-      case "leaves":     await renderLeaves(el);     break;
-      case "sa-stats":   await renderSaStats(el);    break;
-      case "sa-branches":await renderBranches(el);   break;
-      default: el.innerHTML = empty("🔧","Tez orada");
+    const role = S.me?.role;
+    switch(id) {
+      case "home":       await Worker.renderHome();      break;
+      case "history":    await Worker.renderHistory();   break;
+      case "leave-w":    await Worker.renderLeave();     break;
+      case "profile":         Worker.renderProfile();    break;
+      case "monitoring": await Admin.renderMonitoring(); break;
+      case "workers-a":  await Admin.renderWorkers();    break;
+      case "leaves-a":   await Admin.renderLeaves();     break;
+      case "report":          Admin.renderReport();      break;
+      case "att-edit":   await Admin.renderAttEdit();    break;
+      case "dashboard":  await SA.renderDashboard();     break;
+      case "workers-sa": await SA.renderWorkers();       break;
+      case "branches":   await SA.renderBranches();      break;
+      case "positions":  await SA.renderPositions();     break;
+      case "schedules":  await SA.renderSchedules();     break;
+      case "admins":     await SA.renderAdmins();        break;
+      case "settings":   await SA.renderSettings();      break;
+      default: setContent(empty("🔧","Tez orada"));
     }
   } catch(e) {
-    el.innerHTML = empty("⚠️", e.message);
+    setContent(empty("⚠️", e.message));
   }
 }
 
-// ════════════════════════════════════════════════════════════════════════
-// Worker — Bugun (Home)
-// ════════════════════════════════════════════════════════════════════════
-async function renderHome(el) {
-  TODAY = await api("/api/attendance/today");
-  const t = TODAY;
+// ════════════════════════════════════════════════════════════════════════════
+//  WORKER MODULE
+// ════════════════════════════════════════════════════════════════════════════
+const Worker = {
 
-  const statusInfo = {
-    present: ["🟢","Ish joyida","var(--accent)"],
-    late:    ["🟡","Kech keldi","var(--orange)"],
-    absent:  ["⚪","Hali kelmagan","var(--hint)"],
-    on_leave:["🔵","Ta'tilda","var(--link)"],
-    holiday: ["🟣","Dam olish","var(--purple)"],
-  };
-  const [sIcon, sLabel, sColor] = statusInfo[t.status] || statusInfo.absent;
+  async renderHome() {
+    S.today = await api("/api/attendance/today");
+    const t = S.today;
 
-  const nowLabel = new Date().toLocaleDateString("uz-UZ",{weekday:"long",day:"numeric",month:"long"});
+    const stMap = {
+      present:  ["🟢","Ish joyida","var(--accent)"],
+      late:     ["🟡","Kech keldi","var(--orange)"],
+      absent:   ["⚪","Hali kelmagan","var(--hint)"],
+      on_leave: ["🔵","Ta'tilda","var(--link)"],
+      holiday:  ["🟣","Dam olish","var(--purple)"],
+    };
+    const [sico,slbl,scol] = stMap[t.status] || stMap.absent;
+    const dayStr = new Date().toLocaleDateString("uz-UZ",
+      {weekday:"long",day:"numeric",month:"long"});
 
-  const tlItems = [
-    {icon: t.check_in  ? "✅":"⭕", cls: t.check_in  ? "done":"empty",  time: t.check_in  ||"--:--", label:"Keldi"},
-    {icon: t.lunch_out ? "🍽":"⭕", cls: t.lunch_out ? (t.lunch_in?"done":"active"):"empty", time: t.lunch_out||"--:--", label:"Tushlik"},
-    {icon: t.check_out ? "🚪":"⭕", cls: t.check_out ? "done":"empty",  time: t.check_out ||"--:--", label:"Ketdi"},
-  ];
-  const tlHtml = tlItems.map(i =>
-    `<div class="tl-item">
-       <div class="tl-dot ${i.cls}">${i.icon}</div>
-       <div class="tl-time">${i.time}</div>
-       <div class="tl-label">${i.label}</div>
-     </div>`
-  ).join("");
+    const tl = [
+      {ico:t.check_in ?"✅":"⭕",cls:t.check_in?"done":"empty",  time:t.check_in ||"--:--",lbl:"Keldi"},
+      {ico:t.lunch_out?"🍽":"⭕",cls:t.lunch_out?(t.lunch_in?"done":"active"):"empty",
+       time:t.lunch_out||"--:--",lbl:"Tushlik"},
+      {ico:t.check_out?"🚪":"⭕",cls:t.check_out?"done":"empty", time:t.check_out||"--:--",lbl:"Ketdi"},
+    ];
 
-  let workRow = "";
-  if (t.work_minutes != null) {
-    const h = Math.floor(t.work_minutes/60), m = t.work_minutes%60;
-    workRow = `<div style="height:1px;background:rgba(255,255,255,.06);margin:4px 0 10px"></div>
-               <div class="card-row"><span class="card-label">⏱ Ish vaqti</span><span class="card-value">${h}s ${m}d</span></div>`;
-  }
-
-  const canCheckin  = !t.check_in;
-  const canCheckout = t.check_in && !t.check_out;
-  const canLunchOut = t.check_in && !t.check_out && !t.lunch_out;
-  const canLunchIn  = t.lunch_out && !t.lunch_in && !t.check_out;
-
-  el.innerHTML = `
-    <div class="card">
-      <div style="text-align:center;padding:8px 0 4px">
-        <div style="font-size:12px;color:var(--hint);margin-bottom:8px">${nowLabel}</div>
-        <div style="font-size:44px;margin-bottom:6px">${sIcon}</div>
-        <div style="font-size:18px;font-weight:700;color:${sColor}">${sLabel}</div>
-      </div>
-      <div class="timeline">${tlHtml}</div>
-      ${workRow}
-    </div>
-
-    <div class="action-grid">
-      <button class="action-btn${canCheckin?' success':''}" onclick="doCheckin()" ${canCheckin?'':'disabled'}>
-        <span class="btn-icon">✅</span><span class="btn-label">Keldim</span>
-      </button>
-      <button class="action-btn${canCheckout?' danger':''}" onclick="doCheckout()" ${canCheckout?'':'disabled'}>
-        <span class="btn-icon">🚪</span><span class="btn-label">Ketdim</span>
-      </button>
-      <button class="action-btn${canLunchOut?' warn':''}" onclick="doLunchOut()" ${canLunchOut?'':'disabled'}>
-        <span class="btn-icon">🍽</span><span class="btn-label">Tushlikka</span>
-      </button>
-      <button class="action-btn${canLunchIn?' primary':''}" onclick="doLunchIn()" ${canLunchIn?'':'disabled'}>
-        <span class="btn-icon">↩️</span><span class="btn-label">Qaytdim</span>
-      </button>
-    </div>`;
-}
-
-// attendance actions
-async function doCheckin() {
-  tg.showPopup({
-    title:"📍 Joylashuvni aniqlash",
-    message:"Joriy joylashuvingiz GPS orqali aniqlanadi va filial radiusi tekshiriladi.",
-    buttons:[{id:"ok",type:"ok"},{type:"cancel"}],
-  }, async btn => {
-    if (btn !== "ok") return;
-    try {
-      const pos = await new Promise((res,rej) =>
-        navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:12000})
-      );
-      const data = await api("/api/attendance/checkin",{
-        method:"POST",
-        body:{lat:pos.coords.latitude, lon:pos.coords.longitude, accuracy:pos.coords.accuracy||0},
-      });
-      toast(data.message || "✅ Qabul qilindi");
-      tg.HapticFeedback.notificationOccurred("success");
-      renderTab("home");
-    } catch(e) {
-      tg.HapticFeedback.notificationOccurred("error");
-      tg.showAlert(e.message || "GPS xatosi yuz berdi");
+    let workRow = "";
+    if (t.work_minutes != null) {
+      const h=Math.floor(t.work_minutes/60), m=t.work_minutes%60;
+      workRow = `<div class="sep"></div>
+        <div class="card-row"><span class="card-label">⏱ Ish vaqti</span>
+        <span class="card-value">${h}s ${m}d</span></div>`;
     }
-  });
-}
 
-async function doCheckout() {
-  tg.showConfirm("🚪 Ish kunini tugatmoqchimisiz?", async ok => {
-    if (!ok) return;
+    const canCI  = !t.check_in;
+    const canCO  = t.check_in && !t.check_out;
+    const canLO  = t.check_in && !t.check_out && !t.lunch_out;
+    const canLI  = t.lunch_out && !t.lunch_in && !t.check_out;
+
+    setContent(`
+      <div class="card">
+        <div style="text-align:center;padding:8px 0 4px">
+          <div style="font-size:12px;color:var(--hint);margin-bottom:8px">${dayStr}</div>
+          <div style="font-size:44px;margin-bottom:6px">${sico}</div>
+          <div style="font-size:17px;font-weight:700;color:${scol}">${slbl}</div>
+        </div>
+        <div class="timeline">${tl.map(i=>`
+          <div class="tl"><div class="tl-dot ${i.cls}">${i.ico}</div>
+          <div class="tl-time">${i.time}</div>
+          <div class="tl-lbl">${i.lbl}</div></div>`).join("")}
+        </div>${workRow}
+      </div>
+      <div class="act-grid">
+        <button class="act-btn${canCI?" success":""}" onclick="Worker.checkin()" ${canCI?"":"disabled"}>
+          <span class="aico">✅</span><span class="albl">Keldim</span></button>
+        <button class="act-btn${canCO?" danger":""}" onclick="Worker.checkout()" ${canCO?"":"disabled"}>
+          <span class="aico">🚪</span><span class="albl">Ketdim</span></button>
+        <button class="act-btn${canLO?" warning":""}" onclick="Worker.lunchOut()" ${canLO?"":"disabled"}>
+          <span class="aico">🍽</span><span class="albl">Tushlikka</span></button>
+        <button class="act-btn${canLI?" primary":""}" onclick="Worker.lunchIn()" ${canLI?"":"disabled"}>
+          <span class="aico">↩️</span><span class="albl">Qaytdim</span></button>
+      </div>`);
+  },
+
+  checkin() {
+    tg.showPopup({
+      title:"📍 Joylashuvni aniqlash",
+      message:"GPS orqali joriy joylashuv tekshiriladi.",
+      buttons:[{id:"ok",type:"ok"},{type:"cancel"}],
+    }, async btn => {
+      if (btn !== "ok") return;
+      try {
+        const pos = await new Promise((res,rej) =>
+          navigator.geolocation.getCurrentPosition(res,rej,
+            {enableHighAccuracy:true,timeout:12000}));
+        const data = await api("/api/attendance/checkin",{method:"POST",body:{
+          lat:pos.coords.latitude, lon:pos.coords.longitude,
+          accuracy:pos.coords.accuracy||0}});
+        hap.ok(); toast(data.message||"✅ Qabul qilindi");
+        Worker.renderHome();
+      } catch(e) { hap.err(); tg.showAlert(e.message||"GPS xatosi"); }
+    });
+  },
+
+  checkout() {
+    tg.showConfirm("🚪 Ish kunini tugatmoqchimisiz?", async ok => {
+      if (!ok) return;
+      try {
+        const data = await api("/api/attendance/checkout",{method:"POST"});
+        hap.ok(); toast(data.message||"🚪 Qayd etildi");
+        Worker.renderHome();
+      } catch(e) { tg.showAlert(e.message); }
+    });
+  },
+
+  async lunchOut() {
     try {
-      const data = await api("/api/attendance/checkout",{method:"POST"});
-      toast(data.message || "🚪 Qayd etildi");
-      tg.HapticFeedback.notificationOccurred("success");
-      renderTab("home");
+      const data = await api("/api/attendance/lunch_out",{method:"POST"});
+      hap.light(); toast(data.message||"🍽 Tushlikka chiqdingiz");
+      Worker.renderHome();
     } catch(e) { tg.showAlert(e.message); }
-  });
-}
+  },
 
-async function doLunchOut() {
-  try {
-    const data = await api("/api/attendance/lunch_out",{method:"POST"});
-    toast(data.message || "🍽 Tushlikka chiqdingiz");
-    tg.HapticFeedback.impactOccurred("light");
-    renderTab("home");
-  } catch(e) { tg.showAlert(e.message); }
-}
+  async lunchIn() {
+    try {
+      const data = await api("/api/attendance/lunch_in",{method:"POST"});
+      hap.light(); toast(data.message||"✅ Tushlikdan qaytdingiz");
+      Worker.renderHome();
+    } catch(e) { tg.showAlert(e.message); }
+  },
 
-async function doLunchIn() {
-  try {
-    const data = await api("/api/attendance/lunch_in",{method:"POST"});
-    toast(data.message || "✅ Tushlikdan qaytdingiz");
-    tg.HapticFeedback.impactOccurred("light");
-    renderTab("home");
-  } catch(e) { tg.showAlert(e.message); }
-}
+  async renderHistory() {
+    const rows = await api("/api/attendance/history");
+    if (!rows.length) { setContent(empty("📭","Davomat tarixi yo'q")); return; }
 
-// ════════════════════════════════════════════════════════════════════════
-// Worker — Tarix
-// ════════════════════════════════════════════════════════════════════════
-async function renderHistory(el) {
-  const records = await api("/api/attendance/history");
-  if (!records.length) { el.innerHTML = empty("📭","Davomat tarixi yo'q"); return; }
+    const sico = {present:"🟢",late:"🟡",absent:"⚪",on_leave:"🔵",holiday:"🟣"};
+    const present = rows.filter(r=>["present","late"].includes(r.status)).length;
+    const late    = rows.filter(r=>r.status==="late").length;
+    const absent  = rows.filter(r=>r.status==="absent").length;
 
-  const sIcon = {present:"🟢",late:"🟡",absent:"⚪",on_leave:"🔵",holiday:"🟣"};
-  const rows = records.map(r => {
-    const mins = r.work_minutes;
-    const dur = mins != null ? `${Math.floor(mins/60)}s ${mins%60}d` : "";
-    return `<div class="hist-item">
-      <div class="hist-date">${fmtDate(r.date)}</div>
-      <div style="font-size:18px">${sIcon[r.status]||"⚪"}</div>
-      <div class="hist-times">${r.check_in||"–"} → ${r.check_out||"–"}</div>
-      <div class="hist-min">${dur}</div>
-    </div>`;
-  }).join("");
-
-  const present = records.filter(r=>["present","late"].includes(r.status)).length;
-  const late    = records.filter(r=>r.status==="late").length;
-  const absent  = records.filter(r=>r.status==="absent").length;
-
-  el.innerHTML = `
-    <div class="stats-row">
-      <div class="stat-box green"><div class="stat-num">${present}</div><div class="stat-lbl">Keldi</div></div>
-      <div class="stat-box orange"><div class="stat-num">${late}</div><div class="stat-lbl">Kech</div></div>
-      <div class="stat-box red"><div class="stat-num">${absent}</div><div class="stat-lbl">Kelmadi</div></div>
-    </div>
-    <div class="card"><div class="card-title">So'nggi 30 kun</div>${rows}</div>`;
-}
-
-// ════════════════════════════════════════════════════════════════════════
-// Worker — Ta'til
-// ════════════════════════════════════════════════════════════════════════
-async function renderLeave(el) {
-  const leaves = await api("/api/leave/my");
-  const today  = new Date().toISOString().slice(0,10);
-
-  const formHtml = `
-    <div class="card">
-      <div class="card-title">Yangi ta'til so'rovi</div>
-      <div class="form-group">
-        <label class="form-label">Boshlanish sanasi</label>
-        <input class="form-input" type="date" id="lv-start" min="${today}"/>
+    setContent(`
+      <div class="stats-row">
+        <div class="stat green"><div class="stat-n">${present}</div><div class="stat-l">Keldi</div></div>
+        <div class="stat orange"><div class="stat-n">${late}</div><div class="stat-l">Kech</div></div>
+        <div class="stat red"><div class="stat-n">${absent}</div><div class="stat-l">Kelmadi</div></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Tugash sanasi</label>
-        <input class="form-input" type="date" id="lv-end" min="${today}"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Sabab</label>
-        <textarea class="form-input" id="lv-reason" rows="3" placeholder="Ta'til sababini yozing..."></textarea>
-      </div>
-      <button class="submit-btn" onclick="submitLeave()">📤 Yuborish</button>
-    </div>`;
+      <div class="card"><div class="card-title">So'nggi 60 kun</div>
+        ${rows.map(r => {
+          const dur = r.work_minutes!=null ?
+            `${Math.floor(r.work_minutes/60)}s ${r.work_minutes%60}d` : "";
+          return `<div class="hist-item">
+            <div class="hist-date">${fmtDate(r.date)}</div>
+            <div style="font-size:18px">${sico[r.status]||"⚪"}</div>
+            <div class="hist-times">${r.check_in||"–"} → ${r.check_out||"–"}</div>
+            <div class="hist-dur">${dur}</div>
+          </div>`;}).join("")}
+      </div>`);
+  },
 
-  const histHtml = leaves.length
-    ? `<div class="section-hdr" style="margin-top:4px"><span class="section-title">Tarix</span></div>` +
-      leaves.map(lv => `
-        <div class="leave-card">
-          <div class="leave-header">
-            <div>
-              <div class="leave-dates">${fmtDate(lv.start_date)} — ${fmtDate(lv.end_date)}</div>
-              <div class="leave-days">${lv.days} kun</div>
+  async renderLeave() {
+    const leaves = await api("/api/leave/my");
+    const todayStr = today();
+    setContent(`
+      <div class="card">
+        <div class="card-title">Yangi ta'til so'rovi</div>
+        <div class="form-group">
+          <label class="form-label">Boshlanish sanasi</label>
+          <input class="form-input" type="date" id="lv-s" min="${todayStr}"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tugash sanasi</label>
+          <input class="form-input" type="date" id="lv-e" min="${todayStr}"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sabab</label>
+          <textarea class="form-input" id="lv-r" rows="3" placeholder="Ta'til sababini kiriting..."></textarea>
+        </div>
+        <button class="submit-btn" onclick="Worker.submitLeave()">📤 Yuborish</button>
+      </div>
+      ${leaves.length ? `
+        <div class="sec-hdr" style="margin-top:4px">
+          <span class="sec-title">So'rovlar tarixi</span>
+        </div>
+        ${leaves.map(lv => `
+          <div class="leave-card">
+            <div class="leave-hdr">
+              <div>
+                <div class="leave-dates">${fmtDate(lv.start_date)} — ${fmtDate(lv.end_date)}</div>
+                <div class="leave-meta">${lv.days} kun</div>
+              </div>
+              ${leaveChip(lv.status)}
             </div>
-            ${leaveChip(lv.status)}
+            <div class="leave-reason">${lv.reason}</div>
+          </div>`).join("")}` : ""}
+    `);
+  },
+
+  async submitLeave() {
+    const s = document.getElementById("lv-s")?.value;
+    const e = document.getElementById("lv-e")?.value;
+    const r = document.getElementById("lv-r")?.value.trim();
+    if (!s||!e||!r) { toast("⚠️ Barcha maydonlarni to'ldiring"); return; }
+    try {
+      const data = await api("/api/leave",{method:"POST",body:{start_date:s,end_date:e,reason:r}});
+      hap.ok(); toast(data.message||"✅ Yuborildi");
+      Worker.renderLeave();
+    } catch(e) { tg.showAlert(e.message); }
+  },
+
+  renderProfile() {
+    const u = S.me;
+    const roleLabel = {worker:"Ishchi",admin:"Admin",superadmin:"Superadmin"};
+    setContent(`
+      <div class="card" style="text-align:center;padding:20px">
+        <div style="width:72px;height:72px;border-radius:50%;background:rgba(10,132,255,.18);
+          color:var(--link);font-size:26px;font-weight:700;display:flex;
+          align-items:center;justify-content:center;margin:0 auto 12px">
+          ${initials(u.full_name)}</div>
+        <div style="font-size:20px;font-weight:700;margin-bottom:8px">${u.full_name}</div>
+        <span class="badge ${u.role}">${roleLabel[u.role]||u.role}</span>
+      </div>
+      <div class="card">
+        <div class="card-title">Ma'lumotlar</div>
+        <div class="card-row"><span class="card-label">🏢 Filial</span>
+          <span class="card-value">${u.branch?.name||"—"}</span></div>
+        <div class="card-row"><span class="card-label">💼 Lavozim</span>
+          <span class="card-value">${u.position?.name||"—"}</span></div>
+        <div class="card-row"><span class="card-label">⏰ Jadval</span>
+          <span class="card-value">${u.schedule?.name||"—"}</span></div>
+        ${u.schedule ? `<div class="card-row"><span class="card-label">🕐 Ish vaqti</span>
+          <span class="card-value">${u.schedule.start_time}–${u.schedule.end_time}</span></div>` : ""}
+        ${u.schedule?.lunch_start ? `<div class="card-row"><span class="card-label">🍽 Tushlik</span>
+          <span class="card-value">${u.schedule.lunch_start}–${u.schedule.lunch_end}</span></div>` : ""}
+      </div>`);
+  },
+};
+
+
+// ════════════════════════════════════════════════════════════════════════════
+//  ADMIN MODULE
+// ════════════════════════════════════════════════════════════════════════════
+const Admin = {
+
+  async renderMonitoring() {
+    const data = await api("/api/admin/monitoring");
+    if (!data.length) { setContent(empty("📭","Ma'lumot yo'q")); return; }
+
+    let html = "";
+    for (const br of data) {
+      const rows = br.workers.map(w => {
+        const st = w.at_lunch ? "lunch" : w.status;
+        return `<div class="list-item">
+          <div class="li-av">${initials(w.full_name)}</div>
+          <div class="li-info">
+            <div class="li-name">${w.full_name}</div>
+            <div class="li-sub">${w.position||""} ${w.check_in?"· "+w.check_in:""}</div>
+          </div>
+          <div class="li-right">${statusChip(st, w.at_lunch)}</div>
+        </div>`;}).join("") || `<div style="padding:10px 0;color:var(--hint);font-size:14px">Xodimlar yo'q</div>`;
+
+      html += `
+        <div class="stats-row">
+          <div class="stat green"><div class="stat-n">${br.present}</div><div class="stat-l">Keldi</div></div>
+          <div class="stat red"><div class="stat-n">${br.absent}</div><div class="stat-l">Kelmadi</div></div>
+          <div class="stat blue"><div class="stat-n">${br.total}</div><div class="stat-l">Jami</div></div>
+        </div>
+        <div class="card"><div class="card-title">${br.branch_name}</div>${rows}</div>`;
+    }
+    setContent(html);
+  },
+
+  async renderWorkers() {
+    const workers = await api("/api/admin/workers");
+    const role = S.me.role;
+    let branches=[], positions=[], schedules=[];
+    if (role === "superadmin" || role === "admin") {
+      [branches, positions, schedules] = await Promise.all([
+        getLookup("branches"), getLookup("positions"), getLookup("schedules")]);
+    }
+
+    const rows = workers.map(w => `
+      <div class="list-item tap" onclick="Admin.workerDetail(${w.id})">
+        <div class="li-av">${initials(w.full_name)}</div>
+        <div class="li-info">
+          <div class="li-name">${w.full_name}</div>
+          <div class="li-sub">${[w.position?.name,w.branch?.name].filter(Boolean).join(" · ")}</div>
+        </div>
+        <div class="li-right">
+          <span class="dot-badge ${w.telegram_id?"on":"off"}"></span>
+        </div>
+      </div>`).join("") || empty("👥","Xodimlar ro'yxati bo'sh").replace('<div class="empty">','<div>');
+
+    setContent(`
+      <div class="sec-hdr">
+        <span class="sec-title">Xodimlar</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="sec-count">${workers.length} ta</span>
+          <span class="sec-add" onclick="Admin.addWorkerForm()">＋</span>
+        </div>
+      </div>
+      <div class="card">${rows}</div>
+      <div style="font-size:12px;color:var(--hint);text-align:center;margin-top:4px">
+        🟢 = Bot bilan bog'langan
+      </div>`);
+  },
+
+  async workerDetail(wid) {
+    pushView(Admin._workerDetailView, {wid});
+  },
+
+  async _workerDetailView({wid}) {
+    const workers = await api("/api/admin/workers");
+    const w = workers.find(x=>x.id===wid);
+    if (!w) { setContent(empty("⚠️","Ishchi topilmadi")); return; }
+    setContent(`
+      <div class="card" style="text-align:center;padding:20px">
+        <div style="width:60px;height:60px;border-radius:50%;background:rgba(10,132,255,.18);
+          color:var(--link);font-size:22px;font-weight:700;display:flex;
+          align-items:center;justify-content:center;margin:0 auto 10px">
+          ${initials(w.full_name)}</div>
+        <div style="font-size:18px;font-weight:700">${w.full_name}</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Ma'lumotlar</div>
+        <div class="card-row"><span class="card-label">🏢 Filial</span>
+          <span class="card-value">${w.branch?.name||"—"}</span></div>
+        <div class="card-row"><span class="card-label">💼 Lavozim</span>
+          <span class="card-value">${w.position?.name||"—"}</span></div>
+        <div class="card-row"><span class="card-label">⏰ Jadval</span>
+          <span class="card-value">${w.schedule?.name||"—"}</span></div>
+        <div class="card-row"><span class="card-label">📱 Bot</span>
+          <span class="card-value">${w.telegram_id?"Bog'langan ✅":"Bog'lanmagan ❌"}</span></div>
+      </div>
+      ${w.invite_code ? `
+        <div class="invite-box">
+          <div style="font-size:12px;font-weight:600;color:var(--hint);margin-bottom:6px">
+            Taklif havolasi (amal qiladi)</div>
+          <div class="invite-link">https://t.me/${BOT_USERNAME}?start=invite_${w.invite_code}</div>
+          <button class="copy-btn" onclick="Admin.copyInvite('${w.invite_code}')">📋 Nusxa olish</button>
+        </div>` : ""}
+      <button class="submit-btn" style="margin-top:12px" onclick="Admin.regenInvite(${w.id})">
+        🔄 Yangi taklif kodi</button>
+      <button class="danger-btn" onclick="Admin.removeWorker(${w.id},'${w.full_name}')">
+        🗑 Ishchini o'chirish</button>`);
+  },
+
+  copyInvite(code) {
+    const link = `https://t.me/${BOT_USERNAME}?start=invite_${code}`;
+    navigator.clipboard?.writeText(link).then(() => toast("📋 Nusxa olindi"))
+      .catch(() => toast("Link: "+link));
+  },
+
+  async regenInvite(wid) {
+    tg.showConfirm("Yangi taklif kodi yaratilsinmi? Eski kod bekor bo'ladi.", async ok => {
+      if (!ok) return;
+      try {
+        await api(`/api/admin/workers/${wid}/invite`,{method:"POST"});
+        hap.ok(); toast("✅ Yangi kod yaratildi");
+        popView(); setTimeout(()=>Admin.workerDetail(wid),100);
+      } catch(e) { tg.showAlert(e.message); }
+    });
+  },
+
+  async removeWorker(wid, name) {
+    tg.showConfirm(`"${name}" ni o'chirishni tasdiqlaysizmi?`, async ok => {
+      if (!ok) return;
+      try {
+        await api(`/api/admin/workers/${wid}`,{method:"DELETE"});
+        hap.ok(); toast("✅ O'chirildi");
+        popView();
+        S.lookups = {};
+      } catch(e) { tg.showAlert(e.message); }
+    });
+  },
+
+  async addWorkerForm() {
+    pushView(async () => {
+      const [branches, positions, schedules] = await Promise.all([
+        getLookup("branches"), getLookup("positions"), getLookup("schedules")]);
+      setContent(`
+        <div class="card">
+          <div class="card-title">Yangi ishchi qo'shish</div>
+          <div class="form-group">
+            <label class="form-label">To'liq ism</label>
+            <input class="form-input" id="nw-name" placeholder="Ism Familiya"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Filial</label>
+            <select class="form-input" id="nw-br">
+              <option value="">— Tanlang —</option>
+              ${branches.map(b=>`<option value="${b.id}">${b.name}</option>`).join("")}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Lavozim</label>
+            <select class="form-input" id="nw-pos">
+              <option value="">— Tanlang —</option>
+              ${positions.map(p=>`<option value="${p.id}">${p.name}</option>`).join("")}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ish jadvali</label>
+            <select class="form-input" id="nw-sc">
+              <option value="">— Tanlang —</option>
+              ${schedules.map(s=>`<option value="${s.id}">${s.name} (${s.start_time}–${s.end_time})</option>`).join("")}
+            </select>
+          </div>
+          <button class="submit-btn" onclick="Admin.createWorker()">✅ Yaratish</button>
+        </div>`);
+    });
+  },
+
+  async createWorker() {
+    const name = document.getElementById("nw-name")?.value.trim();
+    const br   = parseInt(document.getElementById("nw-br")?.value)||0;
+    const pos  = parseInt(document.getElementById("nw-pos")?.value)||0;
+    const sc   = parseInt(document.getElementById("nw-sc")?.value)||0;
+    if (!name||!br||!pos||!sc) { toast("⚠️ Barcha maydonlarni to'ldiring"); return; }
+    try {
+      const data = await api("/api/admin/workers",{method:"POST",body:{
+        full_name:name, branch_id:br, position_id:pos, schedule_id:sc}});
+      hap.ok();
+      setContent(`
+        <div class="card" style="text-align:center;padding:20px">
+          <div style="font-size:48px;margin-bottom:12px">✅</div>
+          <div style="font-size:17px;font-weight:700;margin-bottom:6px">Ishchi yaratildi</div>
+          <div style="font-size:14px;color:var(--hint);margin-bottom:16px">
+            Quyidagi havolani ishchiga yuboring</div>
+        </div>
+        <div class="invite-box">
+          <div style="font-size:12px;font-weight:600;color:var(--hint);margin-bottom:6px">
+            Taklif havolasi (24 soat amal qiladi)</div>
+          <div class="invite-link">${data.invite_link}</div>
+          <button class="copy-btn" onclick="navigator.clipboard?.writeText('${data.invite_link}')
+            .then(()=>toast('📋 Nusxa olindi'))">📋 Nusxa olish</button>
+        </div>
+        <button class="submit-btn" style="margin-top:10px" onclick="popView()">← Orqaga</button>`);
+      S.lookups = {};
+    } catch(e) { tg.showAlert(e.message); }
+  },
+
+  async renderLeaves() {
+    const leaves = await api("/api/admin/leaves");
+    if (!leaves.length) { setContent(empty("✅","Kutilayotgan so'rovlar yo'q")); return; }
+    setContent(`
+      <div class="sec-hdr">
+        <span class="sec-title">Kutilmoqda</span>
+        <span class="sec-count">${leaves.length}</span>
+      </div>
+      ${leaves.map(lv => `
+        <div class="leave-card" id="lvc-${lv.id}">
+          <div class="leave-hdr">
+            <div>
+              <div style="font-size:14px;font-weight:700;margin-bottom:2px">${lv.worker_name}</div>
+              <div class="leave-dates">${fmtDate(lv.start_date)} — ${fmtDate(lv.end_date)}</div>
+              <div class="leave-meta">${lv.days} kun ${lv.created_at?"· "+lv.created_at:""}</div>
+            </div>
           </div>
           <div class="leave-reason">${lv.reason}</div>
-        </div>`).join("")
-    : "";
+          <div class="leave-acts">
+            <button class="la-btn approve" onclick="Admin.reviewLeave(${lv.id},'approve')">✅ Tasdiqlash</button>
+            <button class="la-btn reject"  onclick="Admin.reviewLeave(${lv.id},'reject')">❌ Rad etish</button>
+          </div>
+        </div>`).join("")}`);
+  },
 
-  el.innerHTML = formHtml + histHtml;
-}
+  async reviewLeave(id, action) {
+    const msg = action==="approve" ? "tasdiqlaysizmi?" : "rad etasizmi?";
+    tg.showConfirm(`Bu so'rovni ${msg}`, async ok => {
+      if (!ok) return;
+      try {
+        await api(`/api/admin/leaves/${id}/review`,{method:"POST",body:{action}});
+        document.getElementById(`lvc-${id}`)?.remove();
+        hap.ok(); toast(action==="approve"?"✅ Tasdiqlandi":"❌ Rad etildi");
+        if (!document.querySelector("[id^='lvc-']"))
+          setContent(empty("✅","Kutilayotgan so'rovlar yo'q"));
+      } catch(e) { tg.showAlert(e.message); }
+    });
+  },
 
-async function submitLeave() {
-  const start  = document.getElementById("lv-start").value;
-  const end    = document.getElementById("lv-end").value;
-  const reason = document.getElementById("lv-reason").value.trim();
-  if (!start || !end || !reason) { toast("⚠️ Barcha maydonlarni to'ldiring"); return; }
-  try {
-    const data = await api("/api/leave",{method:"POST",body:{start_date:start,end_date:end,reason}});
-    toast(data.message || "✅ So'rov yuborildi");
-    tg.HapticFeedback.notificationOccurred("success");
-    renderTab("leave");
-  } catch(e) { tg.showAlert(e.message); }
-}
-
-// ════════════════════════════════════════════════════════════════════════
-// Worker — Profil
-// ════════════════════════════════════════════════════════════════════════
-function renderProfile(el) {
-  const u = ME;
-  const roleLabel = {worker:"Ishchi", admin:"Admin", superadmin:"Superadmin"};
-  el.innerHTML = `
-    <div class="card" style="text-align:center;padding:20px 16px">
-      <div style="width:72px;height:72px;border-radius:50%;background:rgba(10,132,255,.2);color:var(--link);font-size:26px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">${initials(u.full_name)}</div>
-      <div style="font-size:20px;font-weight:700;margin-bottom:8px">${u.full_name}</div>
-      <span class="badge ${u.role}">${roleLabel[u.role]||u.role}</span>
-    </div>
-    <div class="card">
-      <div class="card-title">Ma'lumotlar</div>
-      <div class="card-row"><span class="card-label">🏢 Filial</span><span class="card-value">${u.branch?.name||"—"}</span></div>
-      <div class="card-row"><span class="card-label">💼 Lavozim</span><span class="card-value">${u.position?.name||"—"}</span></div>
-      <div class="card-row"><span class="card-label">⏰ Jadval</span><span class="card-value">${u.schedule?.name||"—"}</span></div>
-      ${u.schedule ? `<div class="card-row"><span class="card-label">🕐 Ish vaqti</span><span class="card-value">${u.schedule.start_time}–${u.schedule.end_time}</span></div>` : ""}
-      ${u.schedule?.lunch_start ? `<div class="card-row"><span class="card-label">🍽 Tushlik</span><span class="card-value">${u.schedule.lunch_start}–${u.schedule.lunch_end}</span></div>` : ""}
-    </div>`;
-}
-
-// ════════════════════════════════════════════════════════════════════════
-// Admin/Superadmin — Monitoring
-// ════════════════════════════════════════════════════════════════════════
-async function renderMonitoring(el) {
-  const data = await api("/api/admin/monitoring");
-  if (!data.length) { el.innerHTML = empty("📭","Ma'lumot topilmadi"); return; }
-
-  let html = "";
-  for (const br of data) {
-    const rows = br.workers.map(w => {
-      const atLunch = w.at_lunch;
-      const st = atLunch ? "lunch" : w.status;
-      const chipM = {present:"chip-present",late:"chip-late",absent:"chip-absent",lunch:"chip-lunch"};
-      const lblM  = {present:"Keldi",late:"Kech",absent:"Kelmadi",lunch:"Tushlikda"};
-      return `<div class="worker-item">
-        <div class="w-avatar">${initials(w.full_name)}</div>
-        <div class="w-info">
-          <div class="w-name">${w.full_name}</div>
-          <div class="w-pos">${w.position||""} ${w.check_in ? "· "+w.check_in : ""}</div>
+  renderReport() {
+    const mon = thisMonth();
+    setContent(`
+      <div class="card">
+        <div class="card-title">Excel hisobot</div>
+        <div class="form-group">
+          <label class="form-label">Oy</label>
+          <input class="form-input" type="month" id="rep-month" value="${mon}"/>
         </div>
-        <div class="w-status">
-          <span class="status-chip ${chipM[st]||'chip-absent'}">${lblM[st]||'Kelmadi'}</span>
+        <button class="submit-btn" onclick="Admin.downloadReport()">📥 Hisobotni yuklab olish</button>
+      </div>
+      <div class="card" style="background:rgba(10,132,255,.08)">
+        <div style="font-size:13px;color:var(--hint);line-height:1.5">
+          💡 Hisobot generatsiya qilinadi va brauzerda ochiladi.
+          Telegram Desktop da fayl menejerida saqlanadi.
         </div>
-      </div>`;
-    }).join("") || `<div style="padding:12px 0;color:var(--hint);font-size:14px">Xodimlar yo'q</div>`;
+      </div>`);
+  },
 
-    html += `
-      <div class="stats-row">
-        <div class="stat-box green"><div class="stat-num">${br.present}</div><div class="stat-lbl">Keldi</div></div>
-        <div class="stat-box red"><div class="stat-num">${br.absent}</div><div class="stat-lbl">Kelmadi</div></div>
-        <div class="stat-box blue"><div class="stat-num">${br.total}</div><div class="stat-lbl">Jami</div></div>
-      </div>
-      <div class="card"><div class="card-title">${br.branch_name}</div>${rows}</div>`;
-  }
-  el.innerHTML = html;
-}
-
-// ════════════════════════════════════════════════════════════════════════
-// Admin/Superadmin — Xodimlar
-// ════════════════════════════════════════════════════════════════════════
-async function renderWorkers(el) {
-  const workers = await api("/api/admin/workers");
-  if (!workers.length) { el.innerHTML = empty("👥","Xodimlar ro'yxati bo'sh"); return; }
-
-  const rows = workers.map(w => `
-    <div class="worker-item">
-      <div class="w-avatar">${initials(w.full_name)}</div>
-      <div class="w-info">
-        <div class="w-name">${w.full_name}</div>
-        <div class="w-pos">${[w.position,w.branch,w.schedule].filter(Boolean).join(" · ")}</div>
-      </div>
-      <div class="w-status"><span class="dot ${w.telegram_linked?'present':'absent'}"></span></div>
-    </div>`).join("");
-
-  el.innerHTML = `
-    <div class="section-hdr">
-      <span class="section-title">Xodimlar</span>
-      <span class="section-count">${workers.length} ta</span>
-    </div>
-    <div class="card">${rows}</div>`;
-}
-
-// ════════════════════════════════════════════════════════════════════════
-// Admin — Ta'til so'rovlari
-// ════════════════════════════════════════════════════════════════════════
-async function renderLeaves(el) {
-  const leaves = await api("/api/admin/leaves");
-  if (!leaves.length) { el.innerHTML = empty("✅","Kutilayotgan so'rovlar yo'q"); return; }
-
-  const cards = leaves.map(lv => `
-    <div class="leave-card" id="lvc-${lv.id}">
-      <div class="leave-header">
-        <div>
-          <div style="font-size:14px;font-weight:700;margin-bottom:2px">${lv.worker_name}</div>
-          <div class="leave-dates">${fmtDate(lv.start_date)} — ${fmtDate(lv.end_date)}</div>
-          <div class="leave-days">${lv.days} kun ${lv.created_at ? "· "+lv.created_at : ""}</div>
-        </div>
-      </div>
-      <div class="leave-reason">${lv.reason}</div>
-      <div class="leave-actions">
-        <button class="leave-btn approve" onclick="reviewLeave(${lv.id},'approve')">✅ Tasdiqlash</button>
-        <button class="leave-btn reject"  onclick="reviewLeave(${lv.id},'reject')">❌ Rad etish</button>
-      </div>
-    </div>`).join("");
-
-  el.innerHTML = `
-    <div class="section-hdr">
-      <span class="section-title">Kutilayotgan so'rovlar</span>
-      <span class="section-count">${leaves.length}</span>
-    </div>${cards}`;
-}
-
-async function reviewLeave(id, action) {
-  const msg = action === "approve" ? "tasdiqlaysizmi?" : "rad etasizmi?";
-  tg.showConfirm(`Bu so'rovni ${msg}`, async ok => {
-    if (!ok) return;
+  async downloadReport() {
+    const month = document.getElementById("rep-month")?.value;
+    if (!month) { toast("⚠️ Oy tanlang"); return; }
     try {
-      await api(`/api/admin/leaves/${id}/review`,{method:"POST",body:{action}});
-      document.getElementById(`lvc-${id}`)?.remove();
-      toast(action === "approve" ? "✅ Tasdiqlandi" : "❌ Rad etildi");
-      tg.HapticFeedback.notificationOccurred("success");
-      if (!document.querySelector("[id^='lvc-']")) {
-        document.getElementById("content").innerHTML = empty("✅","Kutilayotgan so'rovlar yo'q");
-      }
+      const data = await api("/api/admin/report",{method:"POST",body:{month}});
+      hap.ok();
+      const url = `${API}/api/report/file/${data.token}`;
+      tg.openLink(url);
+      toast("📥 Hisobot yuklanmoqda...");
     } catch(e) { tg.showAlert(e.message); }
-  });
-}
+  },
 
-// ════════════════════════════════════════════════════════════════════════
-// Superadmin — Umumiy statistika
-// ════════════════════════════════════════════════════════════════════════
-async function renderSaStats(el) {
-  const s = await api("/api/superadmin/stats");
-  const today = new Date().toLocaleDateString("uz-UZ",{day:"numeric",month:"long",year:"numeric"});
-  el.innerHTML = `
-    <div class="card" style="text-align:center;padding:16px">
-      <div style="font-size:12px;color:var(--hint);margin-bottom:4px">${today}</div>
-      <div style="font-size:17px;font-weight:700">Tizim ko'rsatkichlari</div>
-    </div>
-    <div class="stats-row">
-      <div class="stat-box green"><div class="stat-num">${s.checked_in_today}</div><div class="stat-lbl">Bugun keldi</div></div>
-      <div class="stat-box orange"><div class="stat-num">${s.pending_leaves}</div><div class="stat-lbl">Ta'til kutilmoqda</div></div>
-    </div>
-    <div class="stats-row">
-      <div class="stat-box blue"><div class="stat-num">${s.total_workers}</div><div class="stat-lbl">Xodimlar</div></div>
-      <div class="stat-box blue"><div class="stat-num">${s.total_admins}</div><div class="stat-lbl">Adminlar</div></div>
-      <div class="stat-box blue"><div class="stat-num">${s.total_branches}</div><div class="stat-lbl">Filiallar</div></div>
-    </div>`;
-}
+  async renderAttEdit() {
+    const workers = await api("/api/admin/workers");
+    if (!workers.length) { setContent(empty("👥","Xodimlar yo'q")); return; }
+    setContent(`
+      <div class="card">
+        <div class="card-title">Xodim tanlang</div>
+        ${workers.map(w => `
+          <div class="list-item tap" onclick="Admin.attEditWorker(${w.id},'${w.full_name}')">
+            <div class="li-av">${initials(w.full_name)}</div>
+            <div class="li-info"><div class="li-name">${w.full_name}</div>
+              <div class="li-sub">${w.branch?.name||""}</div></div>
+            <div class="li-right"><span class="chevron">›</span></div>
+          </div>`).join("")}
+      </div>`);
+  },
 
-// ════════════════════════════════════════════════════════════════════════
-// Superadmin — Filiallar
-// ════════════════════════════════════════════════════════════════════════
-async function renderBranches(el) {
-  const branches = await api("/api/superadmin/branches");
-  if (!branches.length) { el.innerHTML = empty("🏢","Filiallar yo'q"); return; }
+  attEditWorker(wid, wname) {
+    pushView(async () => {
+      const recs = await api(`/api/admin/attendance/${wid}?month=${thisMonth()}`);
+      const mon = thisMonth();
+      setContent(`
+        <div style="font-size:16px;font-weight:700;margin-bottom:12px">${wname}</div>
+        <div class="month-picker">
+          <input class="form-input" type="month" id="ae-month" value="${mon}"
+            onchange="Admin._loadAttRecs(${wid},'${wname}')"/>
+        </div>
+        <div id="ae-list">
+          ${Admin._attRecRows(recs)}
+        </div>`);
+    }, {wid, wname});
+  },
 
-  const cards = branches.map(b => `
-    <div class="branch-card">
-      <div class="branch-name">🏢 ${b.name}</div>
-      <div class="branch-meta">Radius: ${b.radius}m &nbsp;·&nbsp; ${b.lat.toFixed(5)}, ${b.lon.toFixed(5)}</div>
-    </div>`).join("");
+  async _loadAttRecs(wid, wname) {
+    const month = document.getElementById("ae-month")?.value || thisMonth();
+    const recs = await api(`/api/admin/attendance/${wid}?month=${month}`);
+    document.getElementById("ae-list").innerHTML = Admin._attRecRows(recs);
+  },
 
-  el.innerHTML = `
-    <div class="section-hdr">
-      <span class="section-title">Filiallar</span>
-      <span class="section-count">${branches.length} ta</span>
-    </div>${cards}`;
-}
+  _attRecRows(recs) {
+    if (!recs.length) return empty("📭","Bu oyda yozuvlar yo'q");
+    return `<div class="card">${recs.map(r => `
+      <div class="list-item tap" onclick="Admin.editAttRecord(${JSON.stringify(r).replace(/"/g,'&quot;')})">
+        <div class="li-info">
+          <div class="li-name">${fmtDate(r.date)}</div>
+          <div class="li-sub">
+            ${r.check_in||"–"} → ${r.check_out||"–"}
+            ${r.admin_note?`· <i>${r.admin_note}</i>`:""}
+          </div>
+        </div>
+        <div class="li-right">${statusChip(r.status,false)}<span class="chevron"> ›</span></div>
+      </div>`).join("")}</div>`;
+  },
 
-// ════════════════════════════════════════════════════════════════════════
-// Bootstrap
-// ════════════════════════════════════════════════════════════════════════
+  editAttRecord(r) {
+    pushView(async () => {
+      const statuses = ["present","late","absent","on_leave","holiday"];
+      const labels   = ["Keldi","Kech keldi","Kelmadi","Ta'tilda","Bayram"];
+      setContent(`
+        <div class="card">
+          <div class="card-title">${fmtDate(r.date)} — Tahrirlash</div>
+          <div class="form-group"><label class="form-label">Kelish vaqti</label>
+            <input class="form-input" type="time" id="ea-ci" value="${r.check_in||""}"/></div>
+          <div class="form-group"><label class="form-label">Ketish vaqti</label>
+            <input class="form-input" type="time" id="ea-co" value="${r.check_out||""}"/></div>
+          <div class="form-group"><label class="form-label">Holat</label>
+            <select class="form-input" id="ea-st">
+              ${statuses.map((s,i)=>
+                `<option value="${s}"${s===r.status?" selected":""}>${labels[i]}</option>`
+              ).join("")}
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Admin izohi</label>
+            <input class="form-input" id="ea-note" value="${r.admin_note||""}" placeholder="Izohlang..."/></div>
+          <button class="submit-btn" onclick="Admin.saveAttEdit(${r.id})">💾 Saqlash</button>
+        </div>`);
+    }, {r});
+  },
+
+  async saveAttEdit(attId) {
+    const ci   = document.getElementById("ea-ci")?.value||null;
+    const co   = document.getElementById("ea-co")?.value||null;
+    const st   = document.getElementById("ea-st")?.value;
+    const note = document.getElementById("ea-note")?.value.trim();
+    try {
+      await api("/api/admin/attendance/edit",{method:"POST",body:{
+        attendance_id:attId, check_in:ci||null, check_out:co||null,
+        status:st, note:note||null}});
+      hap.ok(); toast("✅ Saqlandi");
+      popView();
+    } catch(e) { tg.showAlert(e.message); }
+  },
+};
+
+
+// ════════════════════════════════════════════════════════════════════════════
+//  SUPERADMIN MODULE
+// ════════════════════════════════════════════════════════════════════════════
+const SA = {
+
+  async renderDashboard() {
+    const s = await api("/api/superadmin/stats");
+    const dayStr = new Date().toLocaleDateString("uz-UZ",
+      {day:"numeric",month:"long",year:"numeric"});
+    setContent(`
+      <div class="card" style="text-align:center;padding:16px">
+        <div style="font-size:12px;color:var(--hint);margin-bottom:4px">${dayStr}</div>
+        <div style="font-size:17px;font-weight:700">Tizim ko'rsatkichlari</div>
+      </div>
+      <div class="stats-row">
+        <div class="stat green"><div class="stat-n">${s.checked_in_today}</div>
+          <div class="stat-l">Bugun keldi</div></div>
+        <div class="stat orange"><div class="stat-n">${s.pending_leaves}</div>
+          <div class="stat-l">Ta'til kutilmoqda</div></div>
+      </div>
+      <div class="stats-row">
+        <div class="stat blue"><div class="stat-n">${s.total_workers}</div>
+          <div class="stat-l">Xodimlar</div></div>
+        <div class="stat blue"><div class="stat-n">${s.total_admins}</div>
+          <div class="stat-l">Adminlar</div></div>
+        <div class="stat blue"><div class="stat-n">${s.total_branches}</div>
+          <div class="stat-l">Filiallar</div></div>
+      </div>
+      <div class="card" style="background:rgba(10,132,255,.07)">
+        <div style="font-size:13px;color:var(--hint);line-height:1.55">
+          💡 Tizimni boshqarish uchun yuqoridagi tablardan foydalaning.
+          Filiallar → Lavozimlar → Jadvallar → Adminlar tartibida sozlang.
+        </div>
+      </div>`);
+  },
+
+  async renderWorkers() {
+    // Superadmin uses same worker list but sees all branches
+    await Admin.renderWorkers();
+  },
+
+  async renderBranches() {
+    const branches = await api("/api/superadmin/branches");
+    setContent(`
+      <div class="sec-hdr">
+        <span class="sec-title">Filiallar</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="sec-count">${branches.length} ta</span>
+          <span class="sec-add" onclick="SA.addBranchForm()">＋</span>
+        </div>
+      </div>
+      ${branches.length ? branches.map(b => `
+        <div class="branch-card" onclick="SA.branchDetail(${b.id})">
+          <div class="branch-name">🏢 ${b.name}</div>
+          <div class="branch-meta">Radius: ${b.radius}m · ${b.lat.toFixed(4)}, ${b.lon.toFixed(4)}</div>
+        </div>`).join("") : empty("🏢","Filiallar yo'q")}`);
+  },
+
+  branchDetail(bid) {
+    pushView(async () => {
+      const branches = await api("/api/superadmin/branches");
+      const b = branches.find(x=>x.id===bid);
+      if (!b) { setContent(empty("⚠️","Filial topilmadi")); return; }
+      setContent(`
+        <div class="card">
+          <div class="card-title">Filial ma'lumotlari</div>
+          <div class="card-row"><span class="card-label">🏢 Nomi</span>
+            <span class="card-value">${b.name}</span></div>
+          <div class="card-row"><span class="card-label">📏 Radius</span>
+            <span class="card-value">${b.radius}m</span></div>
+          <div class="card-row"><span class="card-label">📍 Koordinatalar</span>
+            <span class="card-value">${b.lat.toFixed(5)}, ${b.lon.toFixed(5)}</span></div>
+        </div>
+        <button class="submit-btn" onclick="SA.editBranchForm(${JSON.stringify(b).replace(/"/g,'&quot;')})">
+          ✏️ Tahrirlash</button>
+        <button class="danger-btn" onclick="SA.deleteBranch(${b.id},'${b.name}')">
+          🗑 O'chirish</button>`);
+    }, {bid});
+  },
+
+  addBranchForm() {
+    pushView(async () => {
+      setContent(`
+        <div class="card">
+          <div class="card-title">Yangi filial</div>
+          <div class="form-group"><label class="form-label">Nomi</label>
+            <input class="form-input" id="nb-name" placeholder="Filial nomi"/></div>
+          <div class="form-group"><label class="form-label">Radius (metr)</label>
+            <input class="form-input" type="number" id="nb-r" value="100" min="10" max="2000"/></div>
+          <div class="form-group"><label class="form-label">Kenglik (Latitude)</label>
+            <input class="form-input" type="number" id="nb-lat" step="0.00001" placeholder="41.29950"/></div>
+          <div class="form-group"><label class="form-label">Uzunlik (Longitude)</label>
+            <input class="form-input" type="number" id="nb-lon" step="0.00001" placeholder="69.24007"/></div>
+          <button class="submit-btn" style="background:rgba(10,132,255,.15);color:var(--link);margin-bottom:8px"
+            onclick="SA.fillCurrentLocation()">📍 Joriy joylashuvni olish</button>
+          <button class="submit-btn" onclick="SA.createBranch()">✅ Yaratish</button>
+        </div>`);
+    });
+  },
+
+  fillCurrentLocation() {
+    navigator.geolocation.getCurrentPosition(pos => {
+      document.getElementById("nb-lat").value = pos.coords.latitude.toFixed(6);
+      document.getElementById("nb-lon").value = pos.coords.longitude.toFixed(6);
+      toast("📍 Joylashuv olindi");
+    }, () => toast("❌ GPS xatosi"));
+  },
+
+  async createBranch() {
+    const name = document.getElementById("nb-name")?.value.trim();
+    const r    = parseInt(document.getElementById("nb-r")?.value)||0;
+    const lat  = parseFloat(document.getElementById("nb-lat")?.value)||0;
+    const lon  = parseFloat(document.getElementById("nb-lon")?.value)||0;
+    if (!name||!r||!lat||!lon) { toast("⚠️ Barcha maydonlarni to'ldiring"); return; }
+    try {
+      await api("/api/superadmin/branches",{method:"POST",body:{name,lat,lon,radius:r}});
+      hap.ok(); toast("✅ Filial yaratildi");
+      popView(); S.lookups={};
+    } catch(e) { tg.showAlert(e.message); }
+  },
+
+  editBranchForm(b) {
+    pushView(async () => {
+      setContent(`
+        <div class="card">
+          <div class="card-title">"${b.name}" — Tahrirlash</div>
+          <div class="form-group"><label class="form-label">Nomi</label>
+            <input class="form-input" id="eb-name" value="${b.name}"/></div>
+          <div class="form-group"><label class="form-label">Radius (metr)</label>
+            <input class="form-input" type="number" id="eb-r" value="${b.radius}"/></div>
+          <div class="form-group"><label class="form-label">Kenglik (Latitude)</label>
+            <input class="form-input" type="number" id="eb-lat" step="0.00001" value="${b.lat}"/></div>
+          <div class="form-group"><label class="form-label">Uzunlik (Longitude)</label>
+            <input class="form-input" type="number" id="eb-lon" step="0.00001" value="${b.lon}"/></div>
+          <button class="submit-btn" onclick="SA.saveBranch(${b.id})">💾 Saqlash</button>
+        </div>`);
+    });
+  },
+
+  async saveBranch(bid) {
+    const name = document.getElementById("eb-name")?.value.trim();
+    const r    = parseInt(document.getElementById("eb-r")?.value)||0;
+    const lat  = parseFloat(document.getElementById("eb-lat")?.value)||0;
+    const lon  = parseFloat(document.getElementById("eb-lon")?.value)||0;
+    if (!name||!r) { toast("⚠️ Barcha maydonlarni to'ldiring"); return; }
+    try {
+      await api(`/api/superadmin/branches/${bid}`,{method:"PUT",body:{name,lat,lon,radius:r}});
+      hap.ok(); toast("✅ Saqlandi");
+      popView(); popView(); S.lookups={};
+    } catch(e) { tg.showAlert(e.message); }
+  },
+
+  async deleteBranch(bid, name) {
+    tg.showConfirm(`"${name}" filialini o'chirishni tasdiqlaysizmi?`, async ok => {
+      if (!ok) return;
+      try {
+        await api(`/api/superadmin/branches/${bid}`,{method:"DELETE"});
+        hap.ok(); toast("✅ Filial o'chirildi");
+        popView(); popView(); S.lookups={};
+      } catch(e) { tg.showAlert(e.message); }
+    });
+  },
+
+  async renderPositions() {
+    const positions = await api("/api/superadmin/positions");
+    setContent(`
+      <div class="sec-hdr">
+        <span class="sec-title">Lavozimlar</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="sec-count">${positions.length} ta</span>
+          <span class="sec-add" onclick="SA.addPositionForm()">＋</span>
+        </div>
+      </div>
+      ${positions.length ? `<div class="card">${positions.map(p => `
+        <div class="list-item">
+          <div class="li-info"><div class="li-name">💼 ${p.name}</div></div>
+          <div class="li-right" style="display:flex;gap:8px">
+            <button onclick="SA.editPositionForm(${p.id},'${p.name}')"
+              style="background:none;border:none;color:var(--link);font-size:22px;cursor:pointer">✏️</button>
+            <button onclick="SA.deletePosition(${p.id},'${p.name}')"
+              style="background:none;border:none;color:var(--red);font-size:22px;cursor:pointer">🗑</button>
+          </div>
+        </div>`).join("")}</div>` : empty("💼","Lavozimlar yo'q")}`);
+  },
+
+  addPositionForm() {
+    pushView(async () => {
+      setContent(`
+        <div class="card">
+          <div class="card-title">Yangi lavozim</div>
+          <div class="form-group"><label class="form-label">Lavozim nomi</label>
+            <input class="form-input" id="np-name" placeholder="Masalan: Kassir"/></div>
+          <button class="submit-btn" onclick="SA.createPosition()">✅ Yaratish</button>
+        </div>`);
+    });
+  },
+
+  async createPosition() {
+    const name = document.getElementById("np-name")?.value.trim();
+    if (!name) { toast("⚠️ Nomi kiriting"); return; }
+    try {
+      await api("/api/superadmin/positions",{method:"POST",body:{name}});
+      hap.ok(); toast("✅ Lavozim yaratildi");
+      popView(); S.lookups={};
+    } catch(e) { tg.showAlert(e.message); }
+  },
+
+  editPositionForm(pid, pname) {
+    pushView(async () => {
+      setContent(`
+        <div class="card">
+          <div class="card-title">Lavozimni tahrirlash</div>
+          <div class="form-group"><label class="form-label">Lavozim nomi</label>
+            <input class="form-input" id="ep-name" value="${pname}"/></div>
+          <button class="submit-btn" onclick="SA.savePosition(${pid})">💾 Saqlash</button>
+        </div>`);
+    });
+  },
+
+  async savePosition(pid) {
+    const name = document.getElementById("ep-name")?.value.trim();
+    if (!name) { toast("⚠️ Nomi kiriting"); return; }
+    try {
+      await api(`/api/superadmin/positions/${pid}`,{method:"PUT",body:{name}});
+      hap.ok(); toast("✅ Saqlandi");
+      popView(); S.lookups={};
+    } catch(e) { tg.showAlert(e.message); }
+  },
+
+  async deletePosition(pid, name) {
+    tg.showConfirm(`"${name}" lavozimini o'chirishni tasdiqlaysizmi?`, async ok => {
+      if (!ok) return;
+      try {
+        await api(`/api/superadmin/positions/${pid}`,{method:"DELETE"});
+        hap.ok(); toast("✅ O'chirildi");
+        await SA.renderPositions(); S.lookups={};
+      } catch(e) { tg.showAlert(e.message); }
+    });
+  },
+
+  async renderSchedules() {
+    const scs = await api("/api/superadmin/schedules");
+    setContent(`
+      <div class="sec-hdr">
+        <span class="sec-title">Ish jadvallari</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="sec-count">${scs.length} ta</span>
+          <span class="sec-add" onclick="SA.addScheduleForm()">＋</span>
+        </div>
+      </div>
+      ${scs.length ? `<div class="card">${scs.map(sc => `
+        <div class="list-item">
+          <div class="li-info">
+            <div class="li-name">⏰ ${sc.name}</div>
+            <div class="li-sub">${sc.start_time}–${sc.end_time}
+              ${sc.lunch_start?`· Tushlik: ${sc.lunch_start}–${sc.lunch_end}`:""}
+              · Kech: >${sc.late_threshold}d</div>
+          </div>
+          <div class="li-right">
+            <button onclick="SA.deleteSchedule(${sc.id},'${sc.name}')"
+              style="background:none;border:none;color:var(--red);font-size:22px;cursor:pointer">🗑</button>
+          </div>
+        </div>`).join("")}</div>` : empty("⏰","Jadvallar yo'q")}`);
+  },
+
+  addScheduleForm() {
+    pushView(async () => {
+      setContent(`
+        <div class="card">
+          <div class="card-title">Yangi jadval</div>
+          <div class="form-group"><label class="form-label">Jadval nomi</label>
+            <input class="form-input" id="ns-name" placeholder="Masalan: Standart 9-18"/></div>
+          <div class="form-group"><label class="form-label">Ish boshlanishi</label>
+            <input class="form-input" type="time" id="ns-st" value="09:00"/></div>
+          <div class="form-group"><label class="form-label">Ish tugashi</label>
+            <input class="form-input" type="time" id="ns-et" value="18:00"/></div>
+          <div class="form-group"><label class="form-label">Tushlik boshlanishi (ixtiyoriy)</label>
+            <input class="form-input" type="time" id="ns-ls" value="13:00"/></div>
+          <div class="form-group"><label class="form-label">Tushlik tugashi (ixtiyoriy)</label>
+            <input class="form-input" type="time" id="ns-le" value="14:00"/></div>
+          <div class="form-group"><label class="form-label">Kech kelish chegarasi (daqiqa)</label>
+            <input class="form-input" type="number" id="ns-lt" value="15" min="0" max="120"/></div>
+          <button class="submit-btn" onclick="SA.createSchedule()">✅ Yaratish</button>
+        </div>`);
+    });
+  },
+
+  async createSchedule() {
+    const name = document.getElementById("ns-name")?.value.trim();
+    const st   = document.getElementById("ns-st")?.value;
+    const et   = document.getElementById("ns-et")?.value;
+    const ls   = document.getElementById("ns-ls")?.value||null;
+    const le   = document.getElementById("ns-le")?.value||null;
+    const lt   = parseInt(document.getElementById("ns-lt")?.value)||15;
+    if (!name||!st||!et) { toast("⚠️ Asosiy maydonlarni to'ldiring"); return; }
+    try {
+      await api("/api/superadmin/schedules",{method:"POST",body:{
+        name, start_time:st, end_time:et,
+        lunch_start:ls||null, lunch_end:le||null, late_threshold:lt}});
+      hap.ok(); toast("✅ Jadval yaratildi");
+      popView(); S.lookups={};
+    } catch(e) { tg.showAlert(e.message); }
+  },
+
+  async deleteSchedule(sid, name) {
+    tg.showConfirm(`"${name}" jadvalini o'chirishni tasdiqlaysizmi?`, async ok => {
+      if (!ok) return;
+      try {
+        await api(`/api/superadmin/schedules/${sid}`,{method:"DELETE"});
+        hap.ok(); toast("✅ O'chirildi");
+        await SA.renderSchedules(); S.lookups={};
+      } catch(e) { tg.showAlert(e.message); }
+    });
+  },
+
+  async renderAdmins() {
+    const admins = await api("/api/superadmin/admins");
+    const branches = await getLookup("branches");
+    setContent(`
+      <div class="sec-hdr">
+        <span class="sec-title">Adminlar</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="sec-count">${admins.length} ta</span>
+          <span class="sec-add" onclick="SA.addAdminForm()">＋</span>
+        </div>
+      </div>
+      ${admins.length ? `<div class="card">${admins.map(a => `
+        <div class="list-item">
+          <div class="li-av">${initials(a.full_name)}</div>
+          <div class="li-info">
+            <div class="li-name">${a.full_name}</div>
+            <div class="li-sub">${a.branch?.name||"Filial yo'q"}
+              · ${a.telegram_id?"Faol ✅":"Kutilmoqda ⏳"}</div>
+          </div>
+          <div class="li-right">
+            <button onclick="SA.removeAdmin(${a.id},'${a.full_name}')"
+              style="background:none;border:none;color:var(--red);font-size:20px;cursor:pointer">🗑</button>
+          </div>
+        </div>`).join("")}</div>` : empty("👔","Adminlar yo'q")}`);
+  },
+
+  addAdminForm() {
+    pushView(async () => {
+      const branches = await getLookup("branches");
+      setContent(`
+        <div class="card">
+          <div class="card-title">Yangi admin</div>
+          <div class="form-group"><label class="form-label">To'liq ism</label>
+            <input class="form-input" id="na-name" placeholder="Ism Familiya"/></div>
+          <div class="form-group"><label class="form-label">Filial</label>
+            <select class="form-input" id="na-br">
+              <option value="">— Tanlang (ixtiyoriy) —</option>
+              ${branches.map(b=>`<option value="${b.id}">${b.name}</option>`).join("")}
+            </select>
+          </div>
+          <button class="submit-btn" onclick="SA.createAdmin()">✅ Yaratish</button>
+          <div class="form-hint" style="margin-top:8px">
+            Yaratilgandan keyin taklif havolasi ko'rsatiladi
+          </div>
+        </div>`);
+    });
+  },
+
+  async createAdmin() {
+    const name = document.getElementById("na-name")?.value.trim();
+    const br   = parseInt(document.getElementById("na-br")?.value)||null;
+    if (!name) { toast("⚠️ Ism kiriting"); return; }
+    try {
+      const data = await api("/api/superadmin/admins",{method:"POST",body:{
+        full_name:name, branch_id:br}});
+      hap.ok();
+      setContent(`
+        <div class="card" style="text-align:center;padding:20px">
+          <div style="font-size:48px;margin-bottom:12px">✅</div>
+          <div style="font-size:17px;font-weight:700;margin-bottom:6px">Admin yaratildi</div>
+        </div>
+        <div class="invite-box">
+          <div style="font-size:12px;font-weight:600;color:var(--hint);margin-bottom:6px">
+            Taklif havolasi (24 soat amal qiladi)</div>
+          <div class="invite-link">${data.invite_link}</div>
+          <button class="copy-btn" onclick="navigator.clipboard?.writeText('${data.invite_link}')
+            .then(()=>toast('📋 Nusxa olindi'))">📋 Nusxa olish</button>
+        </div>
+        <button class="submit-btn" style="margin-top:10px" onclick="popView()">← Orqaga</button>`);
+    } catch(e) { tg.showAlert(e.message); }
+  },
+
+  async removeAdmin(aid, name) {
+    tg.showConfirm(`"${name}" adminni o'chirishni tasdiqlaysizmi?`, async ok => {
+      if (!ok) return;
+      try {
+        await api(`/api/superadmin/admins/${aid}`,{method:"DELETE"});
+        hap.ok(); toast("✅ O'chirildi");
+        await SA.renderAdmins();
+      } catch(e) { tg.showAlert(e.message); }
+    });
+  },
+
+  async renderSettings() {
+    const s = await api("/api/superadmin/settings");
+    setContent(`
+      <div class="card">
+        <div class="card-title">Bildirishnoma vaqtlari</div>
+        <div class="form-group"><label class="form-label">⏰ Kelish eslatmasi</label>
+          <input class="form-input" type="time" id="st-cr" value="${s.checkin_reminder_time}"/></div>
+        <div class="form-group"><label class="form-label">🕐 Kech kelish tekshiruvi</label>
+          <input class="form-input" type="time" id="st-lc" value="${s.late_check_time}"/></div>
+        <div class="form-group"><label class="form-label">❌ Kelmadi tekshiruvi</label>
+          <input class="form-input" type="time" id="st-ac" value="${s.absent_check_time}"/></div>
+        <div class="form-group"><label class="form-label">📊 Avto-hisobot vaqti</label>
+          <input class="form-input" type="time" id="st-ar" value="${s.auto_report_time}"/></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Qo'shimcha sozlamalar</div>
+        <div class="card-row">
+          <span class="card-label">📅 Haftalik avto-hisobot</span>
+          <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer">
+            <input type="checkbox" id="st-wr" ${s.auto_weekly_report?"checked":""}
+              style="opacity:0;width:0;height:0"/>
+            <span onclick="this.previousElementSibling.checked=!this.previousElementSibling.checked"
+              style="position:absolute;inset:0;background:${s.auto_weekly_report?"var(--accent)":"rgba(255,255,255,.15)"};
+              border-radius:24px;transition:background .2s"></span>
+          </label>
+        </div>
+        <div class="card-row">
+          <span class="card-label">🔔 Bildirishnomalar</span>
+          <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer">
+            <input type="checkbox" id="st-ne" ${s.notifications_enabled?"checked":""}
+              style="opacity:0;width:0;height:0"/>
+            <span onclick="this.previousElementSibling.checked=!this.previousElementSibling.checked"
+              style="position:absolute;inset:0;background:${s.notifications_enabled?"var(--accent)":"rgba(255,255,255,.15)"};
+              border-radius:24px;transition:background .2s"></span>
+          </label>
+        </div>
+      </div>
+      <button class="submit-btn" onclick="SA.saveSettings()">💾 Saqlash</button>`);
+  },
+
+  async saveSettings() {
+    const body = {
+      checkin_reminder_time: document.getElementById("st-cr")?.value||null,
+      late_check_time:       document.getElementById("st-lc")?.value||null,
+      absent_check_time:     document.getElementById("st-ac")?.value||null,
+      auto_report_time:      document.getElementById("st-ar")?.value||null,
+      auto_weekly_report:    document.getElementById("st-wr")?.checked,
+      notifications_enabled: document.getElementById("st-ne")?.checked,
+    };
+    try {
+      await api("/api/superadmin/settings",{method:"PUT",body});
+      hap.ok(); toast("✅ Saqlandi");
+    } catch(e) { tg.showAlert(e.message); }
+  },
+};
+
+
+// ════════════════════════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════════════════════════
 async function boot() {
-  if (!tg.initData || API_URL.includes("YOUR_VPS_HTTPS_URL")) {
-    document.getElementById("content").innerHTML = `
+  if (!tg.initData || API.includes("YOUR_VPS_HTTPS_URL")) {
+    setContent(`
       <div class="card" style="text-align:center;padding:32px 20px">
         <div style="font-size:52px;margin-bottom:12px">🔧</div>
         <div style="font-size:18px;font-weight:700;margin-bottom:10px">Sozlanmagan</div>
         <div style="color:var(--hint);font-size:14px;line-height:1.6">
-          Mini App faqat Telegram orqali ochilganda ishlaydi.<br>
-          VPS ga deploy qilib, <code style="background:rgba(255,255,255,.1);padding:2px 6px;border-radius:5px">API_URL</code> ni yangilang.
+          Mini App faqat Telegram orqali ochilganda ishlaydi.
         </div>
-      </div>`;
-    document.getElementById("hdr-name").textContent = "HR Panel";
-    document.getElementById("hdr-sub").textContent  = "Dev rejimi";
+      </div>`);
+    document.getElementById("h-name").textContent = "HR Panel";
+    document.getElementById("h-sub").textContent  = "Dev rejimi";
     return;
   }
 
   try {
-    ME = await api("/api/me");
+    S.me = await api("/api/me");
   } catch(e) {
-    document.getElementById("content").innerHTML = `
+    setContent(`
       <div class="empty">
-        <div class="empty-icon">🔐</div>
-        <div class="empty-text">${e.message}<br><br>Botni /start bilan qayta ishga tushiring.</div>
-      </div>`;
+        <div class="empty-ico">🔐</div>
+        <div class="empty-txt">${e.message}<br><br>
+          Botni /start bilan qayta ishga tushiring.</div>
+      </div>`);
     return;
   }
 
-  // Update header
-  document.getElementById("hdr-name").textContent = ME.full_name;
-  const subLabel = {
-    worker:     ME.branch?.name || "Ishchi",
-    admin:      "Admin · " + (ME.branch?.name || ""),
+  const u = S.me;
+  document.getElementById("h-av").textContent    = initials(u.full_name);
+  document.getElementById("h-name").textContent  = u.full_name;
+  const subMap = {
+    worker:     u.branch?.name || "Ishchi",
+    admin:      "Admin · " + (u.branch?.name||""),
     superadmin: "Superadmin",
   };
-  document.getElementById("hdr-sub").textContent = subLabel[ME.role] || ME.role;
-  const badge = document.getElementById("hdr-badge");
-  badge.textContent = {worker:"Ishchi", admin:"Admin", superadmin:"Superadmin"}[ME.role] || ME.role;
-  badge.className   = "badge " + ME.role;
+  document.getElementById("h-sub").textContent   = subMap[u.role] || u.role;
+  const badge = document.getElementById("h-badge");
+  badge.textContent = {worker:"Ishchi",admin:"Admin",superadmin:"Superadmin"}[u.role]||u.role;
+  badge.className   = "badge " + u.role;
 
-  buildNav(ME.role);
+  buildNav(u.role);
 }
 
 boot();
