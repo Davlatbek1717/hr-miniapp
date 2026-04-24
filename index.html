@@ -1,403 +1,764 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>HR Bot</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>HR Panel</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-  :root {
-    --bg: var(--tg-theme-bg-color, #ffffff);
-    --text: var(--tg-theme-text-color, #222222);
-    --hint: var(--tg-theme-hint-color, #999999);
-    --link: var(--tg-theme-link-color, #2481cc);
-    --btn: var(--tg-theme-button-color, #2481cc);
-    --btn-text: var(--tg-theme-button-text-color, #ffffff);
-    --secondary-bg: var(--tg-theme-secondary-bg-color, #f0f0f0);
-    --radius: 12px;
-  }
+/* ── reset & base ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:var(--tg-theme-bg-color,#0f0f0f);
+  --bg2:var(--tg-theme-secondary-bg-color,#1c1c1e);
+  --text:var(--tg-theme-text-color,#ffffff);
+  --hint:var(--tg-theme-hint-color,#8e8e93);
+  --link:var(--tg-theme-link-color,#0a84ff);
+  --btn:var(--tg-theme-button-color,#0a84ff);
+  --btn-text:var(--tg-theme-button-text-color,#ffffff);
+  --accent:#30d158;
+  --red:#ff453a;
+  --orange:#ff9f0a;
+  --purple:#bf5af2;
+  --r:14px;
+  --r-sm:10px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;font-size:15px;-webkit-font-smoothing:antialiased}
+#app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+#header{padding:12px 16px 10px;background:var(--bg);border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
+#nav{display:flex;gap:4px;padding:8px 12px;background:var(--bg);border-bottom:1px solid rgba(255,255,255,.07);overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+#nav::-webkit-scrollbar{display:none}
+#content{flex:1;overflow-y:auto;padding:12px 12px 80px;-webkit-overflow-scrolling:touch}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── header ── */
+.h-row{display:flex;align-items:center;justify-content:space-between}
+.h-name{font-size:17px;font-weight:700;letter-spacing:-.3px}
+.h-sub{font-size:12px;color:var(--hint);margin-top:2px}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.3px;text-transform:uppercase}
+.badge.worker{background:rgba(48,209,88,.18);color:var(--accent)}
+.badge.admin{background:rgba(10,132,255,.18);color:var(--link)}
+.badge.superadmin{background:rgba(191,90,242,.18);color:var(--purple)}
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    padding: 16px;
-    min-height: 100vh;
-  }
+/* ── nav ── */
+.tab{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;color:var(--hint);border:none;background:transparent;transition:all .2s}
+.tab.active{background:var(--btn);color:var(--btn-text);font-weight:600}
 
-  .profile-card {
-    background: var(--secondary-bg);
-    border-radius: var(--radius);
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
+/* ── cards ── */
+.card{background:var(--bg2);border-radius:var(--r);padding:16px;margin-bottom:10px}
+.card-title{font-size:12px;font-weight:600;color:var(--hint);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.card-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.card-row:last-child{border-bottom:none}
+.card-label{font-size:14px;color:var(--hint)}
+.card-value{font-size:14px;font-weight:600}
 
-  .avatar {
-    width: 48px; height: 48px;
-    border-radius: 50%;
-    background: var(--btn);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px; color: var(--btn-text);
-    flex-shrink: 0;
-  }
+/* ── action grid ── */
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.action-btn{background:var(--bg2);border:none;border-radius:var(--r);padding:16px 12px;cursor:pointer;color:var(--text);text-align:center;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.action-btn:active{transform:scale(.96);opacity:.8}
+.action-btn.primary{background:var(--btn);color:var(--btn-text)}
+.action-btn.danger{background:rgba(255,69,58,.15);color:var(--red)}
+.action-btn.warn{background:rgba(255,159,10,.15);color:var(--orange)}
+.action-btn.success{background:rgba(48,209,88,.15);color:var(--accent)}
+.action-btn .btn-icon{font-size:28px;display:block;margin-bottom:6px}
+.action-btn .btn-label{font-size:13px;font-weight:600}
+.action-btn:disabled{opacity:.35;cursor:not-allowed}
 
-  .profile-info .name {
-    font-weight: 600; font-size: 16px;
-  }
+/* ── timeline ── */
+.timeline{display:flex;justify-content:space-around;padding:16px 0 8px}
+.tl-item{text-align:center;flex:1}
+.tl-dot{width:36px;height:36px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.tl-dot.done{background:rgba(48,209,88,.2)}
+.tl-dot.active{background:rgba(10,132,255,.2)}
+.tl-dot.empty{background:rgba(255,255,255,.08)}
+.tl-time{font-size:13px;font-weight:600}
+.tl-label{font-size:11px;color:var(--hint);margin-top:2px}
 
-  .profile-info .role {
-    font-size: 13px; color: var(--hint);
-    margin-top: 2px;
-  }
+/* ── stats ── */
+.stats-row{display:flex;gap:8px;margin-bottom:10px}
+.stat-box{flex:1;background:var(--bg2);border-radius:var(--r-sm);padding:12px;text-align:center}
+.stat-num{font-size:24px;font-weight:700}
+.stat-lbl{font-size:11px;color:var(--hint);margin-top:2px}
+.stat-box.green .stat-num{color:var(--accent)}
+.stat-box.red .stat-num{color:var(--red)}
+.stat-box.orange .stat-num{color:var(--orange)}
+.stat-box.blue .stat-num{color:var(--link)}
 
-  .section-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--hint);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin: 16px 0 8px;
-  }
+/* ── worker list ── */
+.worker-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.worker-item:last-child{border-bottom:none}
+.w-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;background:rgba(10,132,255,.2);color:var(--link)}
+.w-info{flex:1;min-width:0}
+.w-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.w-pos{font-size:12px;color:var(--hint);margin-top:2px}
+.w-status{flex-shrink:0}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.dot.present{background:var(--accent)}
+.dot.absent{background:rgba(255,255,255,.2)}
+.status-chip{font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px}
+.chip-present{background:rgba(48,209,88,.15);color:var(--accent)}
+.chip-late{background:rgba(255,159,10,.15);color:var(--orange)}
+.chip-absent{background:rgba(255,255,255,.08);color:var(--hint)}
+.chip-lunch{background:rgba(10,132,255,.15);color:var(--link)}
+.chip-pending{background:rgba(255,159,10,.15);color:var(--orange)}
+.chip-approved{background:rgba(48,209,88,.15);color:var(--accent)}
+.chip-rejected{background:rgba(255,69,58,.15);color:var(--red)}
 
-  .status-card {
-    background: var(--secondary-bg);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+/* ── history ── */
+.hist-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.hist-item:last-child{border-bottom:none}
+.hist-date{font-size:13px;color:var(--hint);min-width:60px}
+.hist-times{flex:1;font-size:13px}
+.hist-min{font-size:12px;color:var(--hint)}
 
-  .status-left { display: flex; align-items: center; gap: 10px; }
+/* ── leave ── */
+.leave-card{background:var(--bg2);border-radius:var(--r);padding:14px;margin-bottom:8px}
+.leave-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.leave-dates{font-size:15px;font-weight:700}
+.leave-days{font-size:12px;color:var(--hint);margin-top:2px}
+.leave-reason{font-size:13px;color:var(--hint);margin-bottom:10px;line-height:1.4}
+.leave-actions{display:flex;gap:8px}
+.leave-btn{flex:1;padding:9px;border:none;border-radius:var(--r-sm);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.leave-btn:active{opacity:.7}
+.leave-btn.approve{background:rgba(48,209,88,.2);color:var(--accent)}
+.leave-btn.reject{background:rgba(255,69,58,.15);color:var(--red)}
 
-  .status-icon {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-  }
+/* ── form ── */
+.form-group{margin-bottom:12px}
+.form-label{font-size:12px;font-weight:600;color:var(--hint);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;display:block}
+.form-input{width:100%;background:var(--bg);border:1.5px solid rgba(255,255,255,.12);border-radius:var(--r-sm);padding:12px 14px;color:var(--text);font-size:15px;outline:none;-webkit-appearance:none;color-scheme:dark}
+.form-input:focus{border-color:var(--btn)}
+.form-input::placeholder{color:var(--hint)}
+textarea.form-input{resize:none;line-height:1.5}
+.submit-btn{width:100%;background:var(--btn);color:var(--btn-text);border:none;border-radius:var(--r);padding:14px;font-size:16px;font-weight:600;cursor:pointer;margin-top:6px;transition:all .15s}
+.submit-btn:active{opacity:.8}
+.submit-btn:disabled{opacity:.4;cursor:not-allowed}
 
-  .status-icon.green { background: #dcf8e7; }
-  .status-icon.red { background: #fde8e8; }
-  .status-icon.yellow { background: #fff8dc; }
-  .status-icon.gray { background: var(--secondary-bg); filter: brightness(0.92); }
+/* ── branch card ── */
+.branch-card{background:var(--bg2);border-radius:var(--r);padding:14px;margin-bottom:8px}
+.branch-name{font-size:16px;font-weight:700;margin-bottom:4px}
+.branch-meta{font-size:13px;color:var(--hint)}
 
-  .status-label { font-weight: 500; font-size: 15px; }
-  .status-time { font-size: 13px; color: var(--hint); margin-top: 2px; }
-  .status-badge {
-    font-size: 12px; font-weight: 600; padding: 4px 10px;
-    border-radius: 20px;
-  }
-  .badge-green { background: #dcf8e7; color: #1a8c45; }
-  .badge-red { background: #fde8e8; color: #c0392b; }
-  .badge-yellow { background: #fff8dc; color: #8c6d1a; }
-  .badge-gray { background: var(--secondary-bg); color: var(--hint); filter: brightness(0.9); }
+/* ── section header ── */
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.section-title{font-size:13px;font-weight:600;color:var(--hint);text-transform:uppercase;letter-spacing:.4px}
+.section-count{font-size:13px;font-weight:600;color:var(--hint)}
 
-  .actions-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 4px;
-  }
+/* ── loading / empty ── */
+.loader{text-align:center;padding:48px 20px;color:var(--hint);font-size:14px}
+.spinner{width:28px;height:28px;border:3px solid rgba(255,255,255,.1);border-top-color:var(--btn);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:48px 20px;color:var(--hint)}
+.empty-icon{font-size:44px;margin-bottom:12px}
+.empty-text{font-size:14px;line-height:1.5}
 
-  .action-btn {
-    background: var(--secondary-bg);
-    border: none;
-    border-radius: var(--radius);
-    padding: 14px 12px;
-    display: flex; flex-direction: column;
-    align-items: center; gap: 6px;
-    cursor: pointer;
-    transition: opacity 0.15s;
-    width: 100%;
-  }
-
-  .action-btn:active { opacity: 0.7; }
-
-  .action-btn .icon { font-size: 26px; }
-  .action-btn .label { font-size: 13px; font-weight: 500; color: var(--text); }
-
-  .action-btn.primary {
-    background: var(--btn);
-    grid-column: 1 / -1;
-  }
-  .action-btn.primary .label { color: var(--btn-text); }
-
-  .calendar {
-    background: var(--secondary-bg);
-    border-radius: var(--radius);
-    padding: 12px;
-  }
-
-  .cal-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 10px;
-  }
-
-  .cal-title { font-weight: 600; font-size: 15px; }
-
-  .cal-grid {
-    display: grid; grid-template-columns: repeat(7, 1fr);
-    gap: 3px; text-align: center;
-  }
-
-  .cal-day-name {
-    font-size: 11px; color: var(--hint); font-weight: 600;
-    padding: 2px 0 6px;
-  }
-
-  .cal-day {
-    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-    font-size: 13px; border-radius: 50%; position: relative;
-  }
-
-  .cal-day.empty { }
-  .cal-day.today { background: var(--btn); color: var(--btn-text); font-weight: 700; }
-  .cal-day.present::after {
-    content: '';
-    width: 5px; height: 5px; border-radius: 50%;
-    background: #27ae60;
-    position: absolute; bottom: 1px;
-  }
-  .cal-day.late::after {
-    content: '';
-    width: 5px; height: 5px; border-radius: 50%;
-    background: #f39c12;
-    position: absolute; bottom: 1px;
-  }
-  .cal-day.absent::after {
-    content: '';
-    width: 5px; height: 5px; border-radius: 50%;
-    background: #e74c3c;
-    position: absolute; bottom: 1px;
-  }
-
-  .footer {
-    text-align: center;
-    color: var(--hint);
-    font-size: 12px;
-    margin-top: 24px;
-    padding-bottom: 8px;
-  }
-
-  .loading {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--hint);
-  }
-
-  .spinner {
-    width: 32px; height: 32px;
-    border: 3px solid var(--secondary-bg);
-    border-top-color: var(--btn);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 12px;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* ── toast ── */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(28,28,30,.96);color:#fff;padding:10px 18px;border-radius:24px;font-size:14px;font-weight:500;opacity:0;transition:all .25s;z-index:999;white-space:nowrap;max-width:88vw;text-align:center;backdrop-filter:blur(12px);pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
-
 <div id="app">
-  <div class="loading">
-    <div class="spinner"></div>
-    <div>Yuklanmoqda...</div>
+  <div id="header">
+    <div class="h-row">
+      <div>
+        <div class="h-name" id="hdr-name">HR Panel</div>
+        <div class="h-sub" id="hdr-sub">Yuklanmoqda...</div>
+      </div>
+      <span class="badge" id="hdr-badge"></span>
+    </div>
+  </div>
+  <div id="nav"></div>
+  <div id="content">
+    <div class="loader"><div class="spinner"></div>Yuklanmoqda...</div>
   </div>
 </div>
+<div id="toast"></div>
 
 <script>
+// ════════════════════════════════════════════════════════════════════════
+// CONFIG  —  API_URL ni VPS ga deploy qilgandan keyin yangilang
+// ════════════════════════════════════════════════════════════════════════
+const API_URL = window.HRBOT_API_URL || "https://understanding-plates-feeding-colleague.trycloudflare.com";
+
+// ════════════════════════════════════════════════════════════════════════
+// Telegram WebApp
+// ════════════════════════════════════════════════════════════════════════
 const tg = window.Telegram.WebApp;
-tg.expand();
 tg.ready();
+tg.expand();
+tg.disableVerticalSwipes?.();
 
-// --- Ma'lumotlar ---
-const user = tg.initDataUnsafe?.user || {};
-const userName = user.first_name || "Foydalanuvchi";
+// ════════════════════════════════════════════════════════════════════════
+// State
+// ════════════════════════════════════════════════════════════════════════
+let ME   = null;
+let TODAY = null;
 
-// Calendar mock data (real data botdan sendData orqali keladi)
-const today = new Date();
-const todayNum = today.getDate();
-const month = today.getMonth();
-const year = today.getFullYear();
-
-const MONTH_NAMES = [
-  "Yanvar","Fevral","Mart","Aprel","May","Iyun",
-  "Iyul","Avgust","Sentabr","Oktabr","Noyabr","Dekabr"
-];
-const DAY_NAMES = ["Du","Se","Ch","Pa","Ju","Sh","Ya"];
-
-// Bot dan kelgan holat (WebApp.initDataUnsafe dan yoki default)
-let todayStatus = "none"; // "checkin" | "checkout" | "lunch_out" | "none"
-
-// --- Render ---
-function render() {
-  document.getElementById("app").innerHTML = `
-    ${renderProfile()}
-    ${renderTodayStatus()}
-    ${renderActions()}
-    ${renderCalendar()}
-    <div class="footer">HR Bot · ${year}</div>
-  `;
+// ════════════════════════════════════════════════════════════════════════
+// API
+// ════════════════════════════════════════════════════════════════════════
+async function api(path, opts = {}) {
+  const r = await fetch(API_URL + path, {
+    method: opts.method || "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "tma " + tg.initData,
+      ...opts.headers,
+    },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  const json = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(json.detail || "Server xatosi");
+  return json;
 }
 
-function renderProfile() {
-  const initials = userName.charAt(0).toUpperCase();
-  return `
-    <div class="profile-card">
-      <div class="avatar">${initials}</div>
-      <div class="profile-info">
-        <div class="name">${escHtml(userName)}</div>
-        <div class="role">Ishchi</div>
-      </div>
-    </div>
-  `;
+// ════════════════════════════════════════════════════════════════════════
+// Toast
+// ════════════════════════════════════════════════════════════════════════
+let _tt;
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.classList.remove("show"), 3000);
 }
 
-function renderTodayStatus() {
-  const dateStr = today.toLocaleDateString("uz-UZ", {day:"2-digit",month:"long",year:"numeric"});
-  return `
-    <div class="section-title">Bugun · ${dateStr}</div>
-    <div class="status-card">
-      <div class="status-left">
-        <div class="status-icon green">✅</div>
-        <div>
-          <div class="status-label">Kelish vaqti</div>
-          <div class="status-time" id="checkin-time">—</div>
-        </div>
-      </div>
-      <span class="status-badge badge-gray" id="checkin-badge">—</span>
-    </div>
-    <div class="status-card">
-      <div class="status-left">
-        <div class="status-icon red">🚪</div>
-        <div>
-          <div class="status-label">Ketish vaqti</div>
-          <div class="status-time" id="checkout-time">—</div>
-        </div>
-      </div>
-      <span class="status-badge badge-gray" id="checkout-badge">—</span>
-    </div>
-    <div class="status-card">
-      <div class="status-left">
-        <div class="status-icon yellow">🍽</div>
-        <div>
-          <div class="status-label">Tushlik</div>
-          <div class="status-time" id="lunch-time">—</div>
-        </div>
-      </div>
-      <span class="status-badge badge-gray" id="lunch-badge">—</span>
-    </div>
-  `;
+// ════════════════════════════════════════════════════════════════════════
+// Helpers
+// ════════════════════════════════════════════════════════════════════════
+const initials = n => (n||"?").split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase();
+
+function fmtDate(iso) {
+  if (!iso) return "";
+  const [y,m,d] = iso.split("-");
+  return `${d}.${m}.${y}`;
 }
 
-function renderActions() {
-  return `
-    <div class="section-title">Amallar</div>
-    <div class="actions-grid">
-      <button class="action-btn primary" onclick="doAction('checkin')">
-        <span class="icon">✅</span>
-        <span class="label">Keldim</span>
-      </button>
-      <button class="action-btn" onclick="doAction('checkout')">
-        <span class="icon">🚪</span>
-        <span class="label">Ketdim</span>
-      </button>
-      <button class="action-btn" onclick="doAction('lunch_out')">
-        <span class="icon">🍽</span>
-        <span class="label">Tushlikka ketdim</span>
-      </button>
-      <button class="action-btn" onclick="doAction('lunch_in')">
-        <span class="icon">↩️</span>
-        <span class="label">Tushlikdan qaytdim</span>
-      </button>
-    </div>
-  `;
+function statusChip(st, atLunch) {
+  if (atLunch) return `<span class="status-chip chip-lunch">Tushlikda</span>`;
+  const M = {
+    present: ["chip-present","Keldi"],
+    late:    ["chip-late","Kech"],
+    absent:  ["chip-absent","Kelmadi"],
+    on_leave:["chip-approved","Ta'tilda"],
+    holiday: ["chip-approved","Dam olish"],
+  };
+  const [cls, lbl] = M[st] || ["chip-absent","—"];
+  return `<span class="status-chip ${cls}">${lbl}</span>`;
 }
 
-function renderCalendar() {
-  const firstDay = new Date(year, month, 1).getDay();
-  const offset = (firstDay === 0) ? 6 : firstDay - 1;
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  let cells = "";
-  for (let i = 0; i < offset; i++) cells += `<div class="cal-day empty"></div>`;
-  for (let d = 1; d <= daysInMonth; d++) {
-    let cls = "cal-day";
-    if (d === todayNum) cls += " today";
-    cells += `<div class="${cls}">${d}</div>`;
-  }
-
-  const dayHeaders = DAY_NAMES.map(d => `<div class="cal-day-name">${d}</div>`).join("");
-
-  return `
-    <div class="section-title">Kalendar — ${MONTH_NAMES[month]}</div>
-    <div class="calendar">
-      <div class="cal-grid">
-        ${dayHeaders}
-        ${cells}
-      </div>
-    </div>
-  `;
+function leaveChip(st) {
+  const M = {
+    pending:  ["chip-pending","Kutilmoqda"],
+    approved: ["chip-approved","Tasdiqlandi"],
+    rejected: ["chip-rejected","Rad etildi"],
+  };
+  const [cls, lbl] = M[st] || ["chip-absent",st];
+  return `<span class="status-chip ${cls}">${lbl}</span>`;
 }
 
-// --- Amallar ---
-function doAction(action) {
-  if (action === "checkin" || action === "checkout") {
-    // Lokatsiya olish va botga yuborish
-    if (!navigator.geolocation) {
-      tg.showAlert("Qurilmangiz GPS ni qo'llab-quvvatlamaydi.");
-      return;
+function loading() {
+  return `<div class="loader"><div class="spinner"></div>Yuklanmoqda...</div>`;
+}
+
+function empty(icon, text) {
+  return `<div class="empty"><div class="empty-icon">${icon}</div><div class="empty-text">${text}</div></div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Navigation
+// ════════════════════════════════════════════════════════════════════════
+const TABS = {
+  worker: [
+    {id:"home",    icon:"🏠", label:"Bugun"},
+    {id:"history", icon:"📊", label:"Tarix"},
+    {id:"leave",   icon:"🏖", label:"Ta'til"},
+    {id:"profile", icon:"👤", label:"Profil"},
+  ],
+  admin: [
+    {id:"monitoring", icon:"📊", label:"Monitoring"},
+    {id:"workers",    icon:"👥", label:"Xodimlar"},
+    {id:"leaves",     icon:"🏖", label:"Ta'tillar"},
+  ],
+  superadmin: [
+    {id:"sa-stats",    icon:"📈", label:"Umumiy"},
+    {id:"sa-monitor",  icon:"📊", label:"Monitoring"},
+    {id:"sa-workers",  icon:"👥", label:"Xodimlar"},
+    {id:"sa-branches", icon:"🏢", label:"Filiallar"},
+  ],
+};
+
+function buildNav(role) {
+  const tabs = TABS[role] || TABS.worker;
+  document.getElementById("nav").innerHTML = tabs.map(t =>
+    `<button class="tab" data-tab="${t.id}" onclick="switchTab('${t.id}')">${t.icon} ${t.label}</button>`
+  ).join("");
+  switchTab(tabs[0].id);
+}
+
+function switchTab(id) {
+  document.querySelectorAll(".tab").forEach(t =>
+    t.classList.toggle("active", t.dataset.tab === id)
+  );
+  renderTab(id);
+}
+
+async function renderTab(id) {
+  const el = document.getElementById("content");
+  el.innerHTML = loading();
+  try {
+    switch (id) {
+      case "home":       await renderHome(el);       break;
+      case "history":    await renderHistory(el);    break;
+      case "leave":      await renderLeave(el);      break;
+      case "profile":         renderProfile(el);     break;
+      case "monitoring": await renderMonitoring(el); break;
+      case "sa-monitor": await renderMonitoring(el); break;
+      case "workers":    await renderWorkers(el);    break;
+      case "sa-workers": await renderWorkers(el);    break;
+      case "leaves":     await renderLeaves(el);     break;
+      case "sa-stats":   await renderSaStats(el);    break;
+      case "sa-branches":await renderBranches(el);   break;
+      default: el.innerHTML = empty("🔧","Tez orada");
     }
-    tg.showPopup({
-      title: action === "checkin" ? "✅ Keldim" : "🚪 Ketdim",
-      message: "GPS lokatsiyangiz olinadi va belgilanadi.",
-      buttons: [
-        { id: "ok", type: "default", text: "Davom etish" },
-        { id: "cancel", type: "cancel", text: "Bekor" },
-      ]
-    }, (btnId) => {
-      if (btnId !== "ok") return;
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const data = JSON.stringify({
-            action,
-            lat: pos.coords.latitude,
-            lon: pos.coords.longitude,
-            accuracy: pos.coords.accuracy,
-          });
-          tg.sendData(data);
-        },
-        () => {
-          tg.showAlert("GPS ma'lumotini olishda xato.\nTelegramda lokatsiya ruxsatini bering.");
-        },
-        { enableHighAccuracy: true, timeout: 10000 }
-      );
-    });
-  } else {
-    // Tushlik amallar lokatsiyasiz
-    const data = JSON.stringify({ action });
-    tg.sendData(data);
+  } catch(e) {
+    el.innerHTML = empty("⚠️", e.message);
   }
 }
 
-// --- Yordamchi ---
-function escHtml(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+// ════════════════════════════════════════════════════════════════════════
+// Worker — Bugun (Home)
+// ════════════════════════════════════════════════════════════════════════
+async function renderHome(el) {
+  TODAY = await api("/api/attendance/today");
+  const t = TODAY;
+
+  const statusInfo = {
+    present: ["🟢","Ish joyida","var(--accent)"],
+    late:    ["🟡","Kech keldi","var(--orange)"],
+    absent:  ["⚪","Hali kelmagan","var(--hint)"],
+    on_leave:["🔵","Ta'tilda","var(--link)"],
+    holiday: ["🟣","Dam olish","var(--purple)"],
+  };
+  const [sIcon, sLabel, sColor] = statusInfo[t.status] || statusInfo.absent;
+
+  const nowLabel = new Date().toLocaleDateString("uz-UZ",{weekday:"long",day:"numeric",month:"long"});
+
+  const tlItems = [
+    {icon: t.check_in  ? "✅":"⭕", cls: t.check_in  ? "done":"empty",  time: t.check_in  ||"--:--", label:"Keldi"},
+    {icon: t.lunch_out ? "🍽":"⭕", cls: t.lunch_out ? (t.lunch_in?"done":"active"):"empty", time: t.lunch_out||"--:--", label:"Tushlik"},
+    {icon: t.check_out ? "🚪":"⭕", cls: t.check_out ? "done":"empty",  time: t.check_out ||"--:--", label:"Ketdi"},
+  ];
+  const tlHtml = tlItems.map(i =>
+    `<div class="tl-item">
+       <div class="tl-dot ${i.cls}">${i.icon}</div>
+       <div class="tl-time">${i.time}</div>
+       <div class="tl-label">${i.label}</div>
+     </div>`
+  ).join("");
+
+  let workRow = "";
+  if (t.work_minutes != null) {
+    const h = Math.floor(t.work_minutes/60), m = t.work_minutes%60;
+    workRow = `<div style="height:1px;background:rgba(255,255,255,.06);margin:4px 0 10px"></div>
+               <div class="card-row"><span class="card-label">⏱ Ish vaqti</span><span class="card-value">${h}s ${m}d</span></div>`;
+  }
+
+  const canCheckin  = !t.check_in;
+  const canCheckout = t.check_in && !t.check_out;
+  const canLunchOut = t.check_in && !t.check_out && !t.lunch_out;
+  const canLunchIn  = t.lunch_out && !t.lunch_in && !t.check_out;
+
+  el.innerHTML = `
+    <div class="card">
+      <div style="text-align:center;padding:8px 0 4px">
+        <div style="font-size:12px;color:var(--hint);margin-bottom:8px">${nowLabel}</div>
+        <div style="font-size:44px;margin-bottom:6px">${sIcon}</div>
+        <div style="font-size:18px;font-weight:700;color:${sColor}">${sLabel}</div>
+      </div>
+      <div class="timeline">${tlHtml}</div>
+      ${workRow}
+    </div>
+
+    <div class="action-grid">
+      <button class="action-btn${canCheckin?' success':''}" onclick="doCheckin()" ${canCheckin?'':'disabled'}>
+        <span class="btn-icon">✅</span><span class="btn-label">Keldim</span>
+      </button>
+      <button class="action-btn${canCheckout?' danger':''}" onclick="doCheckout()" ${canCheckout?'':'disabled'}>
+        <span class="btn-icon">🚪</span><span class="btn-label">Ketdim</span>
+      </button>
+      <button class="action-btn${canLunchOut?' warn':''}" onclick="doLunchOut()" ${canLunchOut?'':'disabled'}>
+        <span class="btn-icon">🍽</span><span class="btn-label">Tushlikka</span>
+      </button>
+      <button class="action-btn${canLunchIn?' primary':''}" onclick="doLunchIn()" ${canLunchIn?'':'disabled'}>
+        <span class="btn-icon">↩️</span><span class="btn-label">Qaytdim</span>
+      </button>
+    </div>`;
 }
 
-// --- Ishga tushirish ---
-render();
+// attendance actions
+async function doCheckin() {
+  tg.showPopup({
+    title:"📍 Joylashuvni aniqlash",
+    message:"Joriy joylashuvingiz GPS orqali aniqlanadi va filial radiusi tekshiriladi.",
+    buttons:[{id:"ok",type:"ok"},{type:"cancel"}],
+  }, async btn => {
+    if (btn !== "ok") return;
+    try {
+      const pos = await new Promise((res,rej) =>
+        navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:12000})
+      );
+      const data = await api("/api/attendance/checkin",{
+        method:"POST",
+        body:{lat:pos.coords.latitude, lon:pos.coords.longitude, accuracy:pos.coords.accuracy||0},
+      });
+      toast(data.message || "✅ Qabul qilindi");
+      tg.HapticFeedback.notificationOccurred("success");
+      renderTab("home");
+    } catch(e) {
+      tg.HapticFeedback.notificationOccurred("error");
+      tg.showAlert(e.message || "GPS xatosi yuz berdi");
+    }
+  });
+}
+
+async function doCheckout() {
+  tg.showConfirm("🚪 Ish kunini tugatmoqchimisiz?", async ok => {
+    if (!ok) return;
+    try {
+      const data = await api("/api/attendance/checkout",{method:"POST"});
+      toast(data.message || "🚪 Qayd etildi");
+      tg.HapticFeedback.notificationOccurred("success");
+      renderTab("home");
+    } catch(e) { tg.showAlert(e.message); }
+  });
+}
+
+async function doLunchOut() {
+  try {
+    const data = await api("/api/attendance/lunch_out",{method:"POST"});
+    toast(data.message || "🍽 Tushlikka chiqdingiz");
+    tg.HapticFeedback.impactOccurred("light");
+    renderTab("home");
+  } catch(e) { tg.showAlert(e.message); }
+}
+
+async function doLunchIn() {
+  try {
+    const data = await api("/api/attendance/lunch_in",{method:"POST"});
+    toast(data.message || "✅ Tushlikdan qaytdingiz");
+    tg.HapticFeedback.impactOccurred("light");
+    renderTab("home");
+  } catch(e) { tg.showAlert(e.message); }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Worker — Tarix
+// ════════════════════════════════════════════════════════════════════════
+async function renderHistory(el) {
+  const records = await api("/api/attendance/history");
+  if (!records.length) { el.innerHTML = empty("📭","Davomat tarixi yo'q"); return; }
+
+  const sIcon = {present:"🟢",late:"🟡",absent:"⚪",on_leave:"🔵",holiday:"🟣"};
+  const rows = records.map(r => {
+    const mins = r.work_minutes;
+    const dur = mins != null ? `${Math.floor(mins/60)}s ${mins%60}d` : "";
+    return `<div class="hist-item">
+      <div class="hist-date">${fmtDate(r.date)}</div>
+      <div style="font-size:18px">${sIcon[r.status]||"⚪"}</div>
+      <div class="hist-times">${r.check_in||"–"} → ${r.check_out||"–"}</div>
+      <div class="hist-min">${dur}</div>
+    </div>`;
+  }).join("");
+
+  const present = records.filter(r=>["present","late"].includes(r.status)).length;
+  const late    = records.filter(r=>r.status==="late").length;
+  const absent  = records.filter(r=>r.status==="absent").length;
+
+  el.innerHTML = `
+    <div class="stats-row">
+      <div class="stat-box green"><div class="stat-num">${present}</div><div class="stat-lbl">Keldi</div></div>
+      <div class="stat-box orange"><div class="stat-num">${late}</div><div class="stat-lbl">Kech</div></div>
+      <div class="stat-box red"><div class="stat-num">${absent}</div><div class="stat-lbl">Kelmadi</div></div>
+    </div>
+    <div class="card"><div class="card-title">So'nggi 30 kun</div>${rows}</div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Worker — Ta'til
+// ════════════════════════════════════════════════════════════════════════
+async function renderLeave(el) {
+  const leaves = await api("/api/leave/my");
+  const today  = new Date().toISOString().slice(0,10);
+
+  const formHtml = `
+    <div class="card">
+      <div class="card-title">Yangi ta'til so'rovi</div>
+      <div class="form-group">
+        <label class="form-label">Boshlanish sanasi</label>
+        <input class="form-input" type="date" id="lv-start" min="${today}"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tugash sanasi</label>
+        <input class="form-input" type="date" id="lv-end" min="${today}"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sabab</label>
+        <textarea class="form-input" id="lv-reason" rows="3" placeholder="Ta'til sababini yozing..."></textarea>
+      </div>
+      <button class="submit-btn" onclick="submitLeave()">📤 Yuborish</button>
+    </div>`;
+
+  const histHtml = leaves.length
+    ? `<div class="section-hdr" style="margin-top:4px"><span class="section-title">Tarix</span></div>` +
+      leaves.map(lv => `
+        <div class="leave-card">
+          <div class="leave-header">
+            <div>
+              <div class="leave-dates">${fmtDate(lv.start_date)} — ${fmtDate(lv.end_date)}</div>
+              <div class="leave-days">${lv.days} kun</div>
+            </div>
+            ${leaveChip(lv.status)}
+          </div>
+          <div class="leave-reason">${lv.reason}</div>
+        </div>`).join("")
+    : "";
+
+  el.innerHTML = formHtml + histHtml;
+}
+
+async function submitLeave() {
+  const start  = document.getElementById("lv-start").value;
+  const end    = document.getElementById("lv-end").value;
+  const reason = document.getElementById("lv-reason").value.trim();
+  if (!start || !end || !reason) { toast("⚠️ Barcha maydonlarni to'ldiring"); return; }
+  try {
+    const data = await api("/api/leave",{method:"POST",body:{start_date:start,end_date:end,reason}});
+    toast(data.message || "✅ So'rov yuborildi");
+    tg.HapticFeedback.notificationOccurred("success");
+    renderTab("leave");
+  } catch(e) { tg.showAlert(e.message); }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Worker — Profil
+// ════════════════════════════════════════════════════════════════════════
+function renderProfile(el) {
+  const u = ME;
+  const roleLabel = {worker:"Ishchi", admin:"Admin", superadmin:"Superadmin"};
+  el.innerHTML = `
+    <div class="card" style="text-align:center;padding:20px 16px">
+      <div style="width:72px;height:72px;border-radius:50%;background:rgba(10,132,255,.2);color:var(--link);font-size:26px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">${initials(u.full_name)}</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:8px">${u.full_name}</div>
+      <span class="badge ${u.role}">${roleLabel[u.role]||u.role}</span>
+    </div>
+    <div class="card">
+      <div class="card-title">Ma'lumotlar</div>
+      <div class="card-row"><span class="card-label">🏢 Filial</span><span class="card-value">${u.branch?.name||"—"}</span></div>
+      <div class="card-row"><span class="card-label">💼 Lavozim</span><span class="card-value">${u.position?.name||"—"}</span></div>
+      <div class="card-row"><span class="card-label">⏰ Jadval</span><span class="card-value">${u.schedule?.name||"—"}</span></div>
+      ${u.schedule ? `<div class="card-row"><span class="card-label">🕐 Ish vaqti</span><span class="card-value">${u.schedule.start_time}–${u.schedule.end_time}</span></div>` : ""}
+      ${u.schedule?.lunch_start ? `<div class="card-row"><span class="card-label">🍽 Tushlik</span><span class="card-value">${u.schedule.lunch_start}–${u.schedule.lunch_end}</span></div>` : ""}
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Admin/Superadmin — Monitoring
+// ════════════════════════════════════════════════════════════════════════
+async function renderMonitoring(el) {
+  const data = await api("/api/admin/monitoring");
+  if (!data.length) { el.innerHTML = empty("📭","Ma'lumot topilmadi"); return; }
+
+  let html = "";
+  for (const br of data) {
+    const rows = br.workers.map(w => {
+      const atLunch = w.at_lunch;
+      const st = atLunch ? "lunch" : w.status;
+      const chipM = {present:"chip-present",late:"chip-late",absent:"chip-absent",lunch:"chip-lunch"};
+      const lblM  = {present:"Keldi",late:"Kech",absent:"Kelmadi",lunch:"Tushlikda"};
+      return `<div class="worker-item">
+        <div class="w-avatar">${initials(w.full_name)}</div>
+        <div class="w-info">
+          <div class="w-name">${w.full_name}</div>
+          <div class="w-pos">${w.position||""} ${w.check_in ? "· "+w.check_in : ""}</div>
+        </div>
+        <div class="w-status">
+          <span class="status-chip ${chipM[st]||'chip-absent'}">${lblM[st]||'Kelmadi'}</span>
+        </div>
+      </div>`;
+    }).join("") || `<div style="padding:12px 0;color:var(--hint);font-size:14px">Xodimlar yo'q</div>`;
+
+    html += `
+      <div class="stats-row">
+        <div class="stat-box green"><div class="stat-num">${br.present}</div><div class="stat-lbl">Keldi</div></div>
+        <div class="stat-box red"><div class="stat-num">${br.absent}</div><div class="stat-lbl">Kelmadi</div></div>
+        <div class="stat-box blue"><div class="stat-num">${br.total}</div><div class="stat-lbl">Jami</div></div>
+      </div>
+      <div class="card"><div class="card-title">${br.branch_name}</div>${rows}</div>`;
+  }
+  el.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Admin/Superadmin — Xodimlar
+// ════════════════════════════════════════════════════════════════════════
+async function renderWorkers(el) {
+  const workers = await api("/api/admin/workers");
+  if (!workers.length) { el.innerHTML = empty("👥","Xodimlar ro'yxati bo'sh"); return; }
+
+  const rows = workers.map(w => `
+    <div class="worker-item">
+      <div class="w-avatar">${initials(w.full_name)}</div>
+      <div class="w-info">
+        <div class="w-name">${w.full_name}</div>
+        <div class="w-pos">${[w.position,w.branch,w.schedule].filter(Boolean).join(" · ")}</div>
+      </div>
+      <div class="w-status"><span class="dot ${w.telegram_linked?'present':'absent'}"></span></div>
+    </div>`).join("");
+
+  el.innerHTML = `
+    <div class="section-hdr">
+      <span class="section-title">Xodimlar</span>
+      <span class="section-count">${workers.length} ta</span>
+    </div>
+    <div class="card">${rows}</div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Admin — Ta'til so'rovlari
+// ════════════════════════════════════════════════════════════════════════
+async function renderLeaves(el) {
+  const leaves = await api("/api/admin/leaves");
+  if (!leaves.length) { el.innerHTML = empty("✅","Kutilayotgan so'rovlar yo'q"); return; }
+
+  const cards = leaves.map(lv => `
+    <div class="leave-card" id="lvc-${lv.id}">
+      <div class="leave-header">
+        <div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:2px">${lv.worker_name}</div>
+          <div class="leave-dates">${fmtDate(lv.start_date)} — ${fmtDate(lv.end_date)}</div>
+          <div class="leave-days">${lv.days} kun ${lv.created_at ? "· "+lv.created_at : ""}</div>
+        </div>
+      </div>
+      <div class="leave-reason">${lv.reason}</div>
+      <div class="leave-actions">
+        <button class="leave-btn approve" onclick="reviewLeave(${lv.id},'approve')">✅ Tasdiqlash</button>
+        <button class="leave-btn reject"  onclick="reviewLeave(${lv.id},'reject')">❌ Rad etish</button>
+      </div>
+    </div>`).join("");
+
+  el.innerHTML = `
+    <div class="section-hdr">
+      <span class="section-title">Kutilayotgan so'rovlar</span>
+      <span class="section-count">${leaves.length}</span>
+    </div>${cards}`;
+}
+
+async function reviewLeave(id, action) {
+  const msg = action === "approve" ? "tasdiqlaysizmi?" : "rad etasizmi?";
+  tg.showConfirm(`Bu so'rovni ${msg}`, async ok => {
+    if (!ok) return;
+    try {
+      await api(`/api/admin/leaves/${id}/review`,{method:"POST",body:{action}});
+      document.getElementById(`lvc-${id}`)?.remove();
+      toast(action === "approve" ? "✅ Tasdiqlandi" : "❌ Rad etildi");
+      tg.HapticFeedback.notificationOccurred("success");
+      if (!document.querySelector("[id^='lvc-']")) {
+        document.getElementById("content").innerHTML = empty("✅","Kutilayotgan so'rovlar yo'q");
+      }
+    } catch(e) { tg.showAlert(e.message); }
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Superadmin — Umumiy statistika
+// ════════════════════════════════════════════════════════════════════════
+async function renderSaStats(el) {
+  const s = await api("/api/superadmin/stats");
+  const today = new Date().toLocaleDateString("uz-UZ",{day:"numeric",month:"long",year:"numeric"});
+  el.innerHTML = `
+    <div class="card" style="text-align:center;padding:16px">
+      <div style="font-size:12px;color:var(--hint);margin-bottom:4px">${today}</div>
+      <div style="font-size:17px;font-weight:700">Tizim ko'rsatkichlari</div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box green"><div class="stat-num">${s.checked_in_today}</div><div class="stat-lbl">Bugun keldi</div></div>
+      <div class="stat-box orange"><div class="stat-num">${s.pending_leaves}</div><div class="stat-lbl">Ta'til kutilmoqda</div></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box blue"><div class="stat-num">${s.total_workers}</div><div class="stat-lbl">Xodimlar</div></div>
+      <div class="stat-box blue"><div class="stat-num">${s.total_admins}</div><div class="stat-lbl">Adminlar</div></div>
+      <div class="stat-box blue"><div class="stat-num">${s.total_branches}</div><div class="stat-lbl">Filiallar</div></div>
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Superadmin — Filiallar
+// ════════════════════════════════════════════════════════════════════════
+async function renderBranches(el) {
+  const branches = await api("/api/superadmin/branches");
+  if (!branches.length) { el.innerHTML = empty("🏢","Filiallar yo'q"); return; }
+
+  const cards = branches.map(b => `
+    <div class="branch-card">
+      <div class="branch-name">🏢 ${b.name}</div>
+      <div class="branch-meta">Radius: ${b.radius}m &nbsp;·&nbsp; ${b.lat.toFixed(5)}, ${b.lon.toFixed(5)}</div>
+    </div>`).join("");
+
+  el.innerHTML = `
+    <div class="section-hdr">
+      <span class="section-title">Filiallar</span>
+      <span class="section-count">${branches.length} ta</span>
+    </div>${cards}`;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Bootstrap
+// ════════════════════════════════════════════════════════════════════════
+async function boot() {
+  if (!tg.initData || API_URL.includes("YOUR_VPS_HTTPS_URL")) {
+    document.getElementById("content").innerHTML = `
+      <div class="card" style="text-align:center;padding:32px 20px">
+        <div style="font-size:52px;margin-bottom:12px">🔧</div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:10px">Sozlanmagan</div>
+        <div style="color:var(--hint);font-size:14px;line-height:1.6">
+          Mini App faqat Telegram orqali ochilganda ishlaydi.<br>
+          VPS ga deploy qilib, <code style="background:rgba(255,255,255,.1);padding:2px 6px;border-radius:5px">API_URL</code> ni yangilang.
+        </div>
+      </div>`;
+    document.getElementById("hdr-name").textContent = "HR Panel";
+    document.getElementById("hdr-sub").textContent  = "Dev rejimi";
+    return;
+  }
+
+  try {
+    ME = await api("/api/me");
+  } catch(e) {
+    document.getElementById("content").innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">🔐</div>
+        <div class="empty-text">${e.message}<br><br>Botni /start bilan qayta ishga tushiring.</div>
+      </div>`;
+    return;
+  }
+
+  // Update header
+  document.getElementById("hdr-name").textContent = ME.full_name;
+  const subLabel = {
+    worker:     ME.branch?.name || "Ishchi",
+    admin:      "Admin · " + (ME.branch?.name || ""),
+    superadmin: "Superadmin",
+  };
+  document.getElementById("hdr-sub").textContent = subLabel[ME.role] || ME.role;
+  const badge = document.getElementById("hdr-badge");
+  badge.textContent = {worker:"Ishchi", admin:"Admin", superadmin:"Superadmin"}[ME.role] || ME.role;
+  badge.className   = "badge " + ME.role;
+
+  buildNav(ME.role);
+}
+
+boot();
 </script>
 </body>
 </html>
