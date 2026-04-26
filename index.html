@@ -6,226 +6,426 @@
 <title>HR Panel</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-/* ─── Reset & Tokens ──────────────────────────────────────────────────────── */
+/* ─── Reset ────────────────────────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ─── Design Tokens (Telegram Theme) ───────────────────────────────────────── */
 :root{
-  --bg:       var(--tg-theme-bg-color,#0f0f0f);
-  --bg2:      var(--tg-theme-secondary-bg-color,#1c1c1e);
-  --bg3:      color-mix(in srgb,var(--bg2) 60%,var(--bg) 40%);
-  --text:     var(--tg-theme-text-color,#ffffff);
-  --hint:     var(--tg-theme-hint-color,#8e8e93);
-  --link:     var(--tg-theme-link-color,#0a84ff);
-  --btn:      var(--tg-theme-button-color,#0a84ff);
+  --bg:       var(--tg-theme-bg-color,#18181b);
+  --bg2:      var(--tg-theme-secondary-bg-color,#27272a);
+  --bg3:      color-mix(in srgb,var(--bg2) 70%,var(--bg) 30%);
+  --text:     var(--tg-theme-text-color,#fafafa);
+  --hint:     var(--tg-theme-hint-color,#71717a);
+  --link:     var(--tg-theme-link-color,#3b82f6);
+  --btn:      var(--tg-theme-button-color,#3b82f6);
   --btn-text: var(--tg-theme-button-text-color,#ffffff);
-  --accent:   #30d158;
-  --red:      #ff453a;
-  --orange:   #ff9f0a;
-  --purple:   #bf5af2;
-  --r:        14px;
-  --r-sm:     10px;
-  --hdr:      56px;
-  --nav:      52px;
+  --sep:      var(--tg-theme-section-separator-color,rgba(255,255,255,.06));
+
+  --green:  #22c55e;
+  --red:    #ef4444;
+  --orange: #f59e0b;
+  --purple: #a855f7;
+  --blue:   #3b82f6;
+
+  --r:    16px;
+  --r-sm: 10px;
+  --r-xs: 6px;
+  --hdr:  58px;
+  --nav:  50px;
+  --safe: env(safe-area-inset-bottom,0px);
 }
-html,body{height:100%;background:var(--bg);color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif;
-  font-size:15px;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+
+/* ─── Base ──────────────────────────────────────────────────────────────────── */
+html,body{
+  height:100%;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;
+  font-size:15px;line-height:1.4;
+  -webkit-font-smoothing:antialiased;overscroll-behavior:none;
+}
 input,textarea,select{font-family:inherit;font-size:inherit}
 
-/* ─── Layout ──────────────────────────────────────────────────────────────── */
+/* ─── Layout ────────────────────────────────────────────────────────────────── */
 #app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
-#header{height:var(--hdr);padding:0 16px;display:flex;align-items:center;
-  justify-content:space-between;background:var(--bg);
-  border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
-#nav{height:var(--nav);display:flex;align-items:center;gap:2px;padding:0 8px;
-  background:var(--bg);border-bottom:1px solid rgba(255,255,255,.07);
-  overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+
+#header{
+  height:var(--hdr);padding:0 16px;
+  display:flex;align-items:center;gap:12px;
+  background:var(--bg);
+  border-bottom:1px solid var(--sep);
+  flex-shrink:0;
+}
+
+#nav{
+  height:var(--nav);
+  display:flex;align-items:center;gap:4px;padding:0 10px;
+  background:var(--bg);
+  border-bottom:1px solid var(--sep);
+  overflow-x:auto;flex-shrink:0;scrollbar-width:none;
+}
 #nav::-webkit-scrollbar{display:none}
-#content{flex:1;overflow-y:auto;padding:12px 12px 90px;
-  -webkit-overflow-scrolling:touch}
 
-/* ─── Header ──────────────────────────────────────────────────────────────── */
-.h-avatar{width:36px;height:36px;border-radius:50%;background:rgba(10,132,255,.2);
-  color:var(--link);font-size:14px;font-weight:700;display:flex;
-  align-items:center;justify-content:center;flex-shrink:0}
-.h-info{flex:1;padding:0 10px}
-.h-name{font-size:15px;font-weight:700}
+#content{
+  flex:1;overflow-y:auto;padding:14px 14px calc(80px + var(--safe));
+  -webkit-overflow-scrolling:touch;
+}
+
+/* ─── Header ────────────────────────────────────────────────────────────────── */
+.h-avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(59,130,246,.18);color:var(--btn);
+  font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  letter-spacing:-.3px;
+}
+.h-info{flex:1;min-width:0}
+.h-name{font-size:15px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .h-sub{font-size:12px;color:var(--hint);margin-top:1px}
-.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;
-  font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
-.badge.worker{background:rgba(48,209,88,.15);color:var(--accent)}
-.badge.admin{background:rgba(10,132,255,.15);color:var(--link)}
-.badge.superadmin{background:rgba(191,90,242,.15);color:var(--purple)}
+.role-tag{
+  font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  padding:3px 8px;border-radius:20px;flex-shrink:0;
+}
+.role-tag.worker    {background:rgba(34,197,94,.14);color:var(--green)}
+.role-tag.admin     {background:rgba(59,130,246,.14);color:var(--blue)}
+.role-tag.superadmin{background:rgba(168,85,247,.14);color:var(--purple)}
 
-/* ─── Nav Tabs ────────────────────────────────────────────────────────────── */
-.tab{flex-shrink:0;padding:7px 12px;border-radius:20px;font-size:12px;
-  font-weight:500;cursor:pointer;color:var(--hint);border:none;
-  background:transparent;transition:all .2s;white-space:nowrap;
-  -webkit-tap-highlight-color:transparent}
-.tab.active{background:var(--btn);color:var(--btn-text);font-weight:600}
+/* ─── Nav Tabs ──────────────────────────────────────────────────────────────── */
+.tab{
+  flex-shrink:0;padding:6px 14px;border-radius:20px;
+  font-size:12px;font-weight:500;cursor:pointer;
+  color:var(--hint);border:none;background:transparent;
+  transition:all .18s;white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+}
+.tab.active{
+  background:var(--btn);color:var(--btn-text);font-weight:600;
+}
 
-/* ─── Cards ───────────────────────────────────────────────────────────────── */
-.card{background:var(--bg2);border-radius:var(--r);padding:16px;margin-bottom:10px}
-.card-title{font-size:11px;font-weight:600;color:var(--hint);text-transform:uppercase;
-  letter-spacing:.5px;margin-bottom:12px}
-.card-row{display:flex;justify-content:space-between;align-items:center;
-  padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+/* ─── Section Header ────────────────────────────────────────────────────────── */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin:0 2px 10px}
+.sec-title{font-size:12px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.6px}
+.sec-count{font-size:12px;color:var(--hint)}
+.sec-add{
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(59,130,246,.12);color:var(--btn);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;cursor:pointer;line-height:1;
+  -webkit-tap-highlight-color:transparent;transition:opacity .15s;
+}
+.sec-add:active{opacity:.6}
+
+/* ─── Cards ─────────────────────────────────────────────────────────────────── */
+.card{
+  background:var(--bg2);border-radius:var(--r);
+  overflow:hidden;margin-bottom:10px;
+}
+.card-header{
+  padding:12px 16px 0;
+  font-size:11px;font-weight:700;color:var(--hint);
+  text-transform:uppercase;letter-spacing:.6px;
+}
+.card-body{padding:0 16px 12px}
+.card-full{padding:16px}
+
+.card-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 16px;border-bottom:1px solid var(--sep);min-height:44px;
+}
 .card-row:last-child{border-bottom:none}
-.card-label{font-size:14px;color:var(--hint)}
-.card-value{font-size:14px;font-weight:600;text-align:right;max-width:55%}
-.sep{height:1px;background:rgba(255,255,255,.06);margin:6px 0}
+.card-row:first-child{border-top:none}
+.row-label{font-size:14px;color:var(--hint)}
+.row-value{font-size:14px;font-weight:600;text-align:right;max-width:60%;color:var(--text)}
 
-/* ─── Stats Row ───────────────────────────────────────────────────────────── */
-.stats-row{display:flex;gap:8px;margin-bottom:10px}
-.stat{flex:1;background:var(--bg2);border-radius:var(--r-sm);padding:12px;text-align:center}
-.stat-n{font-size:26px;font-weight:700}
-.stat-l{font-size:11px;color:var(--hint);margin-top:2px}
-.stat.green .stat-n{color:var(--accent)}
+/* ─── Stats Grid ────────────────────────────────────────────────────────────── */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.stats-row.two{grid-template-columns:repeat(2,1fr)}
+.stat{
+  background:var(--bg2);border-radius:var(--r-sm);
+  padding:14px 10px;text-align:center;
+}
+.stat-n{font-size:28px;font-weight:800;letter-spacing:-1px}
+.stat-l{font-size:11px;color:var(--hint);margin-top:3px;font-weight:500}
+.stat.green .stat-n{color:var(--green)}
 .stat.red   .stat-n{color:var(--red)}
 .stat.orange.stat-n{color:var(--orange)}
-.stat.blue  .stat-n{color:var(--link)}
+.stat.blue  .stat-n{color:var(--blue)}
 
-/* ─── Action Grid ─────────────────────────────────────────────────────────── */
-.act-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.act-btn{background:var(--bg2);border:none;border-radius:var(--r);padding:16px 12px;
-  cursor:pointer;color:var(--text);text-align:center;transition:transform .12s,opacity .12s;
-  -webkit-tap-highlight-color:transparent}
-.act-btn:active{transform:scale(.94);opacity:.75}
-.act-btn.primary {background:var(--btn);color:var(--btn-text)}
-.act-btn.success {background:rgba(48,209,88,.15);color:var(--accent)}
-.act-btn.danger  {background:rgba(255,69,58,.15);color:var(--red)}
-.act-btn.warning {background:rgba(255,159,10,.15);color:var(--orange)}
-.act-btn.purple  {background:rgba(191,90,242,.15);color:var(--purple)}
-.act-btn .aico{font-size:28px;display:block;margin-bottom:6px}
-.act-btn .albl{font-size:13px;font-weight:600}
-.act-btn:disabled{opacity:.32;cursor:not-allowed;transform:none}
+/* ─── Action Buttons ────────────────────────────────────────────────────────── */
+.act-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.act-btn{
+  background:var(--bg2);border:none;border-radius:var(--r);
+  padding:18px 12px 14px;cursor:pointer;color:var(--text);
+  text-align:center;transition:transform .1s,opacity .1s;
+  -webkit-tap-highlight-color:transparent;
+}
+.act-btn:active{transform:scale(.93);opacity:.8}
+.act-btn:disabled{opacity:.28;cursor:not-allowed;transform:none}
+.act-btn .a-ico{
+  width:36px;height:36px;border-radius:10px;
+  margin:0 auto 10px;display:flex;align-items:center;justify-content:center;
+  font-size:17px;font-weight:700;
+}
+.act-btn .a-lbl{font-size:13px;font-weight:600}
+.act-btn.success .a-ico{background:rgba(34,197,94,.15);color:var(--green)}
+.act-btn.danger  .a-ico{background:rgba(239,68,68,.15);color:var(--red)}
+.act-btn.warning .a-ico{background:rgba(245,158,11,.15);color:var(--orange)}
+.act-btn.primary .a-ico{background:rgba(59,130,246,.15);color:var(--blue)}
+.act-btn.muted   .a-ico{background:rgba(255,255,255,.07);color:var(--hint)}
 
-/* ─── Timeline ────────────────────────────────────────────────────────────── */
-.timeline{display:flex;justify-content:space-around;padding:14px 0 8px}
-.tl{text-align:center;flex:1}
-.tl-dot{width:38px;height:38px;border-radius:50%;margin:0 auto 6px;
-  display:flex;align-items:center;justify-content:center;font-size:19px}
-.tl-dot.done  {background:rgba(48,209,88,.2)}
-.tl-dot.active{background:rgba(10,132,255,.2)}
-.tl-dot.empty {background:rgba(255,255,255,.08)}
-.tl-time{font-size:13px;font-weight:600}
-.tl-lbl{font-size:11px;color:var(--hint);margin-top:2px}
+/* ─── Timeline ──────────────────────────────────────────────────────────────── */
+.timeline{display:flex;padding:4px 0 8px;position:relative}
+.timeline::before{
+  content:"";position:absolute;top:27px;left:calc(16%);right:calc(16%);
+  height:2px;background:var(--sep);z-index:0;
+}
+.tl-item{flex:1;text-align:center;position:relative;z-index:1}
+.tl-dot{
+  width:40px;height:40px;border-radius:50%;
+  margin:0 auto 8px;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;border:2px solid transparent;
+}
+.tl-dot.done  {background:rgba(34,197,94,.15);border-color:var(--green);color:var(--green)}
+.tl-dot.active{background:rgba(59,130,246,.15);border-color:var(--blue);color:var(--blue)}
+.tl-dot.empty {background:var(--bg);border-color:var(--sep);color:var(--hint)}
+.tl-time{font-size:13px;font-weight:700;line-height:1}
+.tl-lbl {font-size:11px;color:var(--hint);margin-top:3px}
 
-/* ─── Worker / List Items ─────────────────────────────────────────────────── */
-.list-item{display:flex;align-items:center;gap:12px;padding:11px 0;
-  border-bottom:1px solid rgba(255,255,255,.06)}
+/* ─── Status Dot ────────────────────────────────────────────────────────────── */
+.sdot{
+  width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0;
+}
+.sdot.green {background:var(--green)}
+.sdot.red   {background:var(--red)}
+.sdot.orange{background:var(--orange)}
+.sdot.blue  {background:var(--blue)}
+.sdot.dim   {background:rgba(255,255,255,.15)}
+
+/* ─── List Items ────────────────────────────────────────────────────────────── */
+.list-item{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 16px;border-bottom:1px solid var(--sep);
+  min-height:52px;
+}
 .list-item:last-child{border-bottom:none}
 .list-item.tap{cursor:pointer;-webkit-tap-highlight-color:transparent}
-.list-item.tap:active{opacity:.7}
-.li-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;
-  background:rgba(10,132,255,.18);color:var(--link)}
+.list-item.tap:active{background:rgba(255,255,255,.04)}
+.li-av{
+  width:38px;height:38px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;
+  background:rgba(59,130,246,.14);color:var(--blue);
+}
 .li-info{flex:1;min-width:0}
 .li-name{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .li-sub{font-size:12px;color:var(--hint);margin-top:2px}
-.li-right{flex-shrink:0;text-align:right}
-.chevron{color:var(--hint);font-size:18px}
+.li-right{flex-shrink:0;display:flex;align-items:center;gap:8px}
+.chevron{color:var(--sep);font-size:20px;font-weight:300}
 
-/* ─── Chips ───────────────────────────────────────────────────────────────── */
-.chip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:10px;
-  display:inline-block;white-space:nowrap}
-.chip-present {background:rgba(48,209,88,.15);color:var(--accent)}
-.chip-late    {background:rgba(255,159,10,.15);color:var(--orange)}
-.chip-absent  {background:rgba(255,255,255,.08);color:var(--hint)}
-.chip-lunch   {background:rgba(10,132,255,.15);color:var(--link)}
-.chip-pending {background:rgba(255,159,10,.15);color:var(--orange)}
-.chip-approved{background:rgba(48,209,88,.15);color:var(--accent)}
-.chip-rejected{background:rgba(255,69,58,.15);color:var(--red)}
-.dot-badge{width:9px;height:9px;border-radius:50%;display:inline-block}
-.dot-badge.on{background:var(--accent)}
-.dot-badge.off{background:rgba(255,255,255,.2)}
+/* ─── Chips ─────────────────────────────────────────────────────────────────── */
+.chip{
+  font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;
+  display:inline-block;white-space:nowrap;letter-spacing:.1px;
+}
+.chip-present {background:rgba(34,197,94,.12);color:var(--green)}
+.chip-late    {background:rgba(245,158,11,.12);color:var(--orange)}
+.chip-absent  {background:rgba(255,255,255,.07);color:var(--hint)}
+.chip-lunch   {background:rgba(59,130,246,.12);color:var(--blue)}
+.chip-pending {background:rgba(245,158,11,.12);color:var(--orange)}
+.chip-approved{background:rgba(34,197,94,.12);color:var(--green)}
+.chip-rejected{background:rgba(239,68,68,.12);color:var(--red)}
 
-/* ─── History ─────────────────────────────────────────────────────────────── */
-.hist-item{display:flex;align-items:center;gap:10px;padding:9px 0;
-  border-bottom:1px solid rgba(255,255,255,.06)}
+/* ─── History ───────────────────────────────────────────────────────────────── */
+.hist-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;border-bottom:1px solid var(--sep);
+}
 .hist-item:last-child{border-bottom:none}
-.hist-date{font-size:13px;color:var(--hint);min-width:64px}
+.hist-date{font-size:13px;color:var(--hint);min-width:68px}
 .hist-times{flex:1;font-size:13px}
 .hist-dur{font-size:12px;color:var(--hint)}
 
-/* ─── Leave Card ──────────────────────────────────────────────────────────── */
-.leave-card{background:var(--bg2);border-radius:var(--r);padding:14px;margin-bottom:8px}
-.leave-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
-.leave-dates{font-size:15px;font-weight:700}
-.leave-meta{font-size:12px;color:var(--hint);margin-top:2px}
-.leave-reason{font-size:13px;color:var(--hint);margin-bottom:10px;line-height:1.45}
+/* ─── Leave Cards ───────────────────────────────────────────────────────────── */
+.leave-card{background:var(--bg2);border-radius:var(--r);padding:0;overflow:hidden;margin-bottom:8px}
+.leave-body{padding:14px 16px}
+.leave-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.leave-name{font-size:14px;font-weight:700}
+.leave-dates{font-size:15px;font-weight:700;margin-bottom:2px}
+.leave-meta{font-size:12px;color:var(--hint)}
+.leave-reason{font-size:13px;color:var(--hint);margin:8px 0 12px;line-height:1.5}
 .leave-acts{display:flex;gap:8px}
-.la-btn{flex:1;padding:9px;border:none;border-radius:var(--r-sm);
-  font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.la-btn{
+  flex:1;padding:10px;border:none;border-radius:var(--r-sm);
+  font-size:13px;font-weight:700;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:opacity .15s;
+}
 .la-btn:active{opacity:.7}
-.la-btn.approve{background:rgba(48,209,88,.18);color:var(--accent)}
-.la-btn.reject {background:rgba(255,69,58,.15);color:var(--red)}
+.la-btn.approve{background:rgba(34,197,94,.12);color:var(--green)}
+.la-btn.reject {background:rgba(239,68,68,.10);color:var(--red)}
 
-/* ─── Forms ───────────────────────────────────────────────────────────────── */
-.form-group{margin-bottom:14px}
-.form-label{display:block;font-size:12px;font-weight:600;color:var(--hint);
-  text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
-.form-input{width:100%;background:var(--bg);border:1.5px solid rgba(255,255,255,.12);
-  border-radius:var(--r-sm);padding:12px 14px;color:var(--text);font-size:15px;
-  outline:none;-webkit-appearance:none;color-scheme:dark;transition:border-color .2s}
+/* ─── Forms ─────────────────────────────────────────────────────────────────── */
+.form-group{margin-bottom:16px}
+.form-label{
+  display:block;font-size:12px;font-weight:700;color:var(--hint);
+  text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;
+}
+.form-input{
+  width:100%;background:var(--bg);
+  border:1.5px solid rgba(255,255,255,.1);
+  border-radius:var(--r-sm);padding:12px 14px;
+  color:var(--text);font-size:15px;outline:none;
+  -webkit-appearance:none;color-scheme:dark;
+  transition:border-color .2s;
+}
 .form-input:focus{border-color:var(--btn)}
 .form-input::placeholder{color:var(--hint)}
 select.form-input{cursor:pointer}
 textarea.form-input{resize:none;line-height:1.5}
-.form-hint{font-size:12px;color:var(--hint);margin-top:5px}
-.submit-btn{width:100%;background:var(--btn);color:var(--btn-text);border:none;
-  border-radius:var(--r);padding:14px;font-size:16px;font-weight:600;cursor:pointer;
-  margin-top:8px;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
-.submit-btn:active{opacity:.8}
-.submit-btn:disabled{opacity:.4;cursor:not-allowed}
-.danger-btn{width:100%;background:rgba(255,69,58,.15);color:var(--red);border:none;
-  border-radius:var(--r);padding:12px;font-size:15px;font-weight:600;cursor:pointer;
-  margin-top:8px;transition:opacity .15s}
-.danger-btn:active{opacity:.7}
+.form-hint{font-size:12px;color:var(--hint);margin-top:6px;line-height:1.45}
 
-/* ─── Section header ──────────────────────────────────────────────────────── */
-.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.sec-title{font-size:12px;font-weight:600;color:var(--hint);text-transform:uppercase;letter-spacing:.4px}
-.sec-count{font-size:12px;color:var(--hint)}
-.sec-add{font-size:22px;color:var(--btn);cursor:pointer;line-height:1;
-  padding:2px 4px;-webkit-tap-highlight-color:transparent}
-.sec-add:active{opacity:.6}
+.btn-primary{
+  width:100%;background:var(--btn);color:var(--btn-text);
+  border:none;border-radius:var(--r);padding:15px;
+  font-size:16px;font-weight:700;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:opacity .15s;
+}
+.btn-primary:active{opacity:.8}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed}
+.btn-secondary{
+  width:100%;background:rgba(59,130,246,.1);color:var(--blue);
+  border:none;border-radius:var(--r);padding:13px;
+  font-size:15px;font-weight:600;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:opacity .15s;
+  margin-top:8px;
+}
+.btn-secondary:active{opacity:.7}
+.btn-danger{
+  width:100%;background:rgba(239,68,68,.1);color:var(--red);
+  border:none;border-radius:var(--r);padding:13px;
+  font-size:15px;font-weight:600;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:opacity .15s;
+  margin-top:8px;
+}
+.btn-danger:active{opacity:.7}
 
-/* ─── Loading / Empty ─────────────────────────────────────────────────────── */
-.loader{text-align:center;padding:52px 20px;color:var(--hint)}
-.spinner{width:28px;height:28px;border:3px solid rgba(255,255,255,.1);
-  border-top-color:var(--btn);border-radius:50%;
-  animation:spin .65s linear infinite;margin:0 auto 14px}
-@keyframes spin{to{transform:rotate(360deg)}}
-.empty{text-align:center;padding:52px 20px;color:var(--hint)}
-.empty-ico{font-size:44px;margin-bottom:12px}
-.empty-txt{font-size:14px;line-height:1.55}
+/* ─── Toggle ────────────────────────────────────────────────────────────────── */
+.toggle-wrap{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--sep)}
+.toggle-wrap:last-child{border-bottom:none}
+.toggle-label{font-size:14px}
+.toggle{position:relative;width:44px;height:26px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-track{
+  position:absolute;inset:0;border-radius:26px;cursor:pointer;
+  background:rgba(255,255,255,.15);transition:background .2s;
+}
+.toggle input:checked + .toggle-track{background:var(--green)}
+.toggle-thumb{
+  position:absolute;top:3px;left:3px;width:20px;height:20px;
+  border-radius:50%;background:#fff;transition:left .2s;
+  pointer-events:none;
+}
+.toggle input:checked ~ .toggle-thumb{left:21px}
 
-/* ─── Toast ───────────────────────────────────────────────────────────────── */
-#toast{position:fixed;bottom:20px;left:50%;
-  transform:translateX(-50%) translateY(14px);
-  background:rgba(28,28,30,.96);color:#fff;padding:10px 18px;
-  border-radius:24px;font-size:14px;font-weight:500;opacity:0;
-  transition:all .25s;z-index:999;white-space:nowrap;
-  max-width:88vw;text-align:center;
-  backdrop-filter:blur(14px);pointer-events:none}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ─── Info Box ──────────────────────────────────────────────────────────────── */
+.info-box{
+  background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);
+  border-radius:var(--r-sm);padding:13px 14px;margin-bottom:10px;
+}
+.info-box p{font-size:13px;color:var(--hint);line-height:1.55}
 
-/* ─── Invite box ──────────────────────────────────────────────────────────── */
-.invite-box{background:rgba(48,209,88,.08);border:1px solid rgba(48,209,88,.3);
-  border-radius:var(--r-sm);padding:12px 14px;margin-top:10px}
-.invite-link{font-size:13px;word-break:break-all;color:var(--accent);margin-bottom:8px}
-.copy-btn{background:rgba(48,209,88,.15);color:var(--accent);border:none;
-  border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer}
+/* ─── Invite Box ────────────────────────────────────────────────────────────── */
+.invite-box{
+  background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);
+  border-radius:var(--r-sm);padding:14px;margin-bottom:10px;
+}
+.invite-link{
+  font-size:13px;word-break:break-all;color:var(--green);
+  margin-bottom:10px;line-height:1.45;
+}
+.copy-btn{
+  background:rgba(34,197,94,.12);color:var(--green);
+  border:none;border-radius:var(--r-xs);
+  padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;
+}
 .copy-btn:active{opacity:.7}
 
-/* ─── Misc ────────────────────────────────────────────────────────────────── */
-.branch-card{background:var(--bg2);border-radius:var(--r);padding:14px;margin-bottom:8px;
-  cursor:pointer;-webkit-tap-highlight-color:transparent}
+/* ─── Branch Card ───────────────────────────────────────────────────────────── */
+.branch-card{
+  background:var(--bg2);border-radius:var(--r);
+  padding:14px 16px;margin-bottom:8px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  display:flex;align-items:center;gap:12px;
+}
 .branch-card:active{opacity:.75}
-.branch-name{font-size:16px;font-weight:700;margin-bottom:4px}
-.branch-meta{font-size:13px;color:var(--hint)}
-.month-picker{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.month-picker input{flex:1}
+.branch-ico{
+  width:40px;height:40px;border-radius:12px;flex-shrink:0;
+  background:rgba(59,130,246,.12);color:var(--blue);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;
+}
+.branch-info{flex:1;min-width:0}
+.branch-name{font-size:15px;font-weight:700}
+.branch-meta{font-size:12px;color:var(--hint);margin-top:2px}
+
+/* ─── Skeleton ──────────────────────────────────────────────────────────────── */
+@keyframes shimmer{
+  0%  {background-position:200% 0}
+  100%{background-position:-200% 0}
+}
+.skel{
+  background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.6s ease infinite;
+  border-radius:8px;
+}
+.skel-card{background:var(--bg2);border-radius:var(--r);padding:16px;margin-bottom:10px}
+.skel-h{height:14px;margin-bottom:10px}
+.skel-row{height:10px;margin-bottom:8px}
+.skel-row.short{width:60%}
+.skel-row.xshort{width:35%}
+.skel-av{width:38px;height:38px;border-radius:50%;flex-shrink:0}
+
+/* ─── Loading / Empty ───────────────────────────────────────────────────────── */
+.empty-state{text-align:center;padding:56px 20px}
+.empty-ico{
+  width:56px;height:56px;border-radius:18px;
+  background:var(--bg2);margin:0 auto 16px;
+  display:flex;align-items:center;justify-content:center;
+}
+.empty-ico span{font-size:26px;font-weight:800;color:var(--hint)}
+.empty-txt{font-size:14px;color:var(--hint);line-height:1.6}
+
+/* ─── Toast ─────────────────────────────────────────────────────────────────── */
+#toast{
+  position:fixed;bottom:calc(24px + var(--safe));left:50%;
+  transform:translateX(-50%) translateY(10px);
+  background:rgba(39,39,42,.96);color:var(--text);
+  padding:10px 20px;border-radius:24px;
+  font-size:14px;font-weight:500;opacity:0;
+  transition:opacity .22s,transform .22s;z-index:999;
+  white-space:nowrap;max-width:88vw;text-align:center;
+  backdrop-filter:blur(16px);pointer-events:none;
+  border:1px solid rgba(255,255,255,.08);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ─── Status Display ────────────────────────────────────────────────────────── */
+.status-banner{
+  padding:20px 16px;text-align:center;
+}
+.status-dot-lg{
+  width:54px;height:54px;border-radius:50%;
+  margin:0 auto 10px;display:flex;align-items:center;justify-content:center;
+}
+.status-dot-lg.green {background:rgba(34,197,94,.12);border:2px solid rgba(34,197,94,.3)}
+.status-dot-lg.orange{background:rgba(245,158,11,.12);border:2px solid rgba(245,158,11,.3)}
+.status-dot-lg.dim   {background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.1)}
+.status-dot-lg.blue  {background:rgba(59,130,246,.12);border:2px solid rgba(59,130,246,.3)}
+.sdot-inner{width:20px;height:20px;border-radius:50%}
+.sdot-inner.green {background:var(--green)}
+.sdot-inner.orange{background:var(--orange)}
+.sdot-inner.dim   {background:var(--hint)}
+.sdot-inner.blue  {background:var(--blue)}
+.status-label{font-size:17px;font-weight:700}
+.status-date{font-size:12px;color:var(--hint);margin-top:3px}
 </style>
 </head>
 <body>
@@ -234,27 +434,38 @@ textarea.form-input{resize:none;line-height:1.5}
     <div class="h-avatar" id="h-av">?</div>
     <div class="h-info">
       <div class="h-name" id="h-name">HR Panel</div>
-      <div class="h-sub"  id="h-sub">Yuklanmoqda...</div>
+      <div class="h-sub"  id="h-sub">Yuklanmoqda</div>
     </div>
-    <span class="badge" id="h-badge"></span>
+    <span class="role-tag" id="h-badge"></span>
   </div>
   <div id="nav"></div>
   <div id="content">
-    <div class="loader"><div class="spinner"></div>Yuklanmoqda...</div>
+    <div id="skeleton-boot">
+      <div class="skel-card">
+        <div class="skel skel-h" style="width:50%;margin-bottom:16px"></div>
+        <div class="skel skel-row"></div>
+        <div class="skel skel-row short"></div>
+      </div>
+      <div class="skel-card">
+        <div style="display:flex;gap:12px;margin-bottom:12px">
+          <div class="skel skel-av"></div>
+          <div style="flex:1">
+            <div class="skel skel-row" style="margin-bottom:8px"></div>
+            <div class="skel skel-row short"></div>
+          </div>
+        </div>
+        <div class="skel skel-row"></div>
+        <div class="skel skel-row xshort"></div>
+      </div>
+    </div>
   </div>
 </div>
 <div id="toast"></div>
 
 <script>
-// ════════════════════════════════════════════════════════════════════════════
-//  CONFIG
-// ════════════════════════════════════════════════════════════════════════════
-const API = window.HRBOT_API_URL || "https://carries-levitra-numbers-standings.trycloudflare.com";
+const API = window.HRBOT_API_URL || "https://intersection-acc-unified-believed.trycloudflare.com";
 const BOT_USERNAME = "hr_boshqaruv_bot";
 
-// ════════════════════════════════════════════════════════════════════════════
-//  TELEGRAM SDK
-// ════════════════════════════════════════════════════════════════════════════
 const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
@@ -263,28 +474,13 @@ tg.disableVerticalSwipes?.();
 const MB = tg.MainButton;
 const BB = tg.BackButton;
 
-// ════════════════════════════════════════════════════════════════════════════
-//  STATE
-// ════════════════════════════════════════════════════════════════════════════
-const S = {
-  me: null,
-  today: null,
-  activeTab: null,
-  stack: [],        // [{id, data, render}]
-  lookups: {},      // cached: branches, positions, schedules
-};
+const S = {me:null, today:null, activeTab:null, stack:[], lookups:{}};
 
-// ════════════════════════════════════════════════════════════════════════════
-//  API
-// ════════════════════════════════════════════════════════════════════════════
-async function api(path, opts = {}) {
+// ── API ──────────────────────────────────────────────────────────────────────
+async function api(path, opts={}) {
   const r = await fetch(API + path, {
     method:  opts.method || "GET",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "tma " + tg.initData,
-      ...opts.headers,
-    },
+    headers: {"Content-Type":"application/json","Authorization":"tma "+tg.initData,...opts.headers},
     body: opts.body ? JSON.stringify(opts.body) : undefined,
   });
   const json = await r.json().catch(() => ({}));
@@ -299,37 +495,34 @@ async function getLookup(key) {
   return data;
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-//  TOAST & HAPTICS
-// ════════════════════════════════════════════════════════════════════════════
+// ── Toast & Haptics ──────────────────────────────────────────────────────────
 let _tt;
 function toast(msg) {
   const el = document.getElementById("toast");
   el.textContent = msg;
   el.classList.add("show");
   clearTimeout(_tt);
-  _tt = setTimeout(() => el.classList.remove("show"), 3000);
+  _tt = setTimeout(() => el.classList.remove("show"), 2800);
 }
-
 const hap = {
   ok:    () => tg.HapticFeedback?.notificationOccurred("success"),
   err:   () => tg.HapticFeedback?.notificationOccurred("error"),
+  warn:  () => tg.HapticFeedback?.notificationOccurred("warning"),
   light: () => tg.HapticFeedback?.impactOccurred("light"),
   med:   () => tg.HapticFeedback?.impactOccurred("medium"),
 };
 
-// ════════════════════════════════════════════════════════════════════════════
-//  UTILS
-// ════════════════════════════════════════════════════════════════════════════
+// ── Utils ────────────────────────────────────────────────────────────────────
 const initials = n => (n||"?").split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase();
-const fmtDate  = iso => { if(!iso) return ""; const [y,m,d]=iso.split("-"); return `${d}.${m}.${y}`; };
+const fmtDate  = iso => {if(!iso)return""; const [y,m,d]=iso.split("-"); return `${d}.${m}.${y}`};
 const today    = () => new Date().toISOString().slice(0,10);
 const thisMonth= () => new Date().toISOString().slice(0,7);
 
+function chip(label, cls) { return `<span class="chip ${cls}">${label}</span>`; }
 function statusChip(st, atLunch) {
   if (atLunch) return chip("Tushlikda","chip-lunch");
-  const M = {present:["Keldi","chip-present"],late:["Kech","chip-late"],
-             absent:["Kelmadi","chip-absent"],on_leave:["Ta'tilda","chip-approved"],
+  const M = {present:["Keldi","chip-present"],late:["Kech keldi","chip-late"],
+             absent:["Kelmadi","chip-absent"],on_leave:["Ta'tilida","chip-approved"],
              holiday:["Dam olish","chip-approved"]};
   const [l,c] = M[st] || ["—","chip-absent"];
   return chip(l, c);
@@ -340,33 +533,53 @@ function leaveChip(st) {
   const [l,c] = M[st] || [st,"chip-absent"];
   return chip(l, c);
 }
-function chip(label, cls) {
-  return `<span class="chip ${cls}">${label}</span>`;
+
+function setContent(html) { document.getElementById("content").innerHTML = html; }
+
+function skeletonList(rows=3) {
+  const row = `<div class="list-item">
+    <div class="skel skel-av"></div>
+    <div style="flex:1">
+      <div class="skel skel-row" style="margin-bottom:8px"></div>
+      <div class="skel skel-row short"></div>
+    </div>
+  </div>`;
+  return `<div class="card">${row.repeat(rows)}</div>`;
+}
+function skeletonCard() {
+  return `<div class="skel-card">
+    <div class="skel skel-h" style="width:55%;margin-bottom:14px"></div>
+    <div class="skel skel-row"></div>
+    <div class="skel skel-row short"></div>
+    <div class="skel skel-row xshort" style="margin-bottom:0"></div>
+  </div>`;
+}
+function emptyState(letter, title, sub="") {
+  return `<div class="empty-state">
+    <div class="empty-ico"><span>${letter}</span></div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:6px">${title}</div>
+    ${sub?`<div class="empty-txt">${sub}</div>`:""}
+  </div>`;
 }
 
-const loading = () => `<div class="loader"><div class="spinner"></div>Yuklanmoqda...</div>`;
-const empty   = (ico,txt) => `<div class="empty"><div class="empty-ico">${ico}</div><div class="empty-txt">${txt}</div></div>`;
-const setContent = html => document.getElementById("content").innerHTML = html;
-
-// ════════════════════════════════════════════════════════════════════════════
-//  NAVIGATION (tab + stack)
-// ════════════════════════════════════════════════════════════════════════════
+// ── Navigation ───────────────────────────────────────────────────────────────
 const TABS = {
-  worker:     [{id:"home",ico:"🏠",lbl:"Bugun"},{id:"history",ico:"📅",lbl:"Tarix"},
-               {id:"leave-w",ico:"🏖",lbl:"Ta'til"},{id:"profile",ico:"👤",lbl:"Profil"}],
-  admin:      [{id:"monitoring",ico:"📊",lbl:"Bugun"},{id:"workers-a",ico:"👥",lbl:"Xodimlar"},
-               {id:"leaves-a",ico:"🏖",lbl:"Ta'tillar"},{id:"report",ico:"📈",lbl:"Hisobot"},
-               {id:"att-edit",ico:"✏️",lbl:"Davomat"}],
-  superadmin: [{id:"dashboard",ico:"📈",lbl:"Bosh"},{id:"monitoring",ico:"📊",lbl:"Monitoring"},
-               {id:"workers-sa",ico:"👥",lbl:"Ishchilar"},{id:"branches",ico:"🏢",lbl:"Filiallar"},
-               {id:"positions",ico:"💼",lbl:"Lavozimlar"},{id:"schedules",ico:"⏰",lbl:"Jadvallar"},
-               {id:"admins",ico:"👔",lbl:"Adminlar"},{id:"settings",ico:"⚙️",lbl:"Sozlamalar"}],
+  worker:     [{id:"home",lbl:"Bugun"},{id:"history",lbl:"Tarix"},
+               {id:"leave-w",lbl:"Ta'til"},{id:"profile",lbl:"Profil"}],
+  admin:      [{id:"monitoring",lbl:"Bugun"},{id:"workers-a",lbl:"Xodimlar"},
+               {id:"leaves-a",lbl:"Ta'tillar"},{id:"report",lbl:"Hisobot"},
+               {id:"att-edit",lbl:"Davomat"}],
+  superadmin: [{id:"dashboard",lbl:"Asosiy"},{id:"monitoring",lbl:"Monitoring"},
+               {id:"workers-sa",lbl:"Xodimlar"},{id:"report-sa",lbl:"Hisobot"},
+               {id:"branches",lbl:"Filiallar"},{id:"positions",lbl:"Lavozimlar"},
+               {id:"schedules",lbl:"Jadvallar"},{id:"admins",lbl:"Adminlar"},
+               {id:"settings",lbl:"Sozlamalar"}],
 };
 
 function buildNav(role) {
   const tabs = TABS[role] || TABS.worker;
   document.getElementById("nav").innerHTML = tabs.map(t =>
-    `<button class="tab" data-tab="${t.id}" onclick="switchTab('${t.id}')">${t.ico} ${t.lbl}</button>`
+    `<button class="tab" data-tab="${t.id}" onclick="switchTab('${t.id}')">${t.lbl}</button>`
   ).join("");
   switchTab(tabs[0].id);
 }
@@ -379,47 +592,36 @@ function switchTab(id) {
   renderTab(id);
 }
 
-function clearStack() {
-  S.stack = [];
-  hideBack();
-  hideMB();
-}
+function clearStack() { S.stack = []; hideBack(); hideMB(); }
 
-function pushView(renderFn, data = {}) {
+function pushView(renderFn, data={}) {
   S.stack.push({renderFn, data});
   showBack();
-  setContent(loading());
-  renderFn(data).catch(e => setContent(empty("⚠️", e.message)));
+  setContent(skeletonCard() + skeletonList());
+  renderFn(data).catch(e => setContent(emptyState("!", e.message)));
 }
 
 function popView() {
   S.stack.pop();
   hideMB();
-  if (S.stack.length === 0) {
-    hideBack();
-    renderTab(S.activeTab);
-  } else {
+  if (S.stack.length === 0) { hideBack(); renderTab(S.activeTab); }
+  else {
     const top = S.stack[S.stack.length - 1];
-    setContent(loading());
-    top.renderFn(top.data).catch(e => setContent(empty("⚠️", e.message)));
+    setContent(skeletonCard());
+    top.renderFn(top.data).catch(e => setContent(emptyState("!", e.message)));
   }
 }
 
 function showBack() { BB.show(); BB.onClick(popView); }
 function hideBack() { BB.hide(); BB.offClick(popView); }
-
 function showMB(text, fn, color) {
-  MB.setText(text);
-  if (color) { MB.color = color; }
-  MB.onClick(fn);
-  MB.show();
+  MB.setText(text); if(color)MB.color=color; MB.onClick(fn); MB.show();
 }
 function hideMB() { MB.hide(); MB.offClick(); }
 
 async function renderTab(id) {
-  setContent(loading());
+  setContent(skeletonCard() + skeletonList());
   try {
-    const role = S.me?.role;
     switch(id) {
       case "home":       await Worker.renderHome();      break;
       case "history":    await Worker.renderHistory();   break;
@@ -432,16 +634,15 @@ async function renderTab(id) {
       case "att-edit":   await Admin.renderAttEdit();    break;
       case "dashboard":  await SA.renderDashboard();     break;
       case "workers-sa": await SA.renderWorkers();       break;
+      case "report-sa":       SA.renderReport();         break;
       case "branches":   await SA.renderBranches();      break;
       case "positions":  await SA.renderPositions();     break;
       case "schedules":  await SA.renderSchedules();     break;
       case "admins":     await SA.renderAdmins();        break;
       case "settings":   await SA.renderSettings();      break;
-      default: setContent(empty("🔧","Tez orada"));
+      default: setContent(emptyState("?","Tez orada"));
     }
-  } catch(e) {
-    setContent(empty("⚠️", e.message));
-  }
+  } catch(e) { setContent(emptyState("!", e.message)); }
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -452,133 +653,137 @@ const Worker = {
   async renderHome() {
     S.today = await api("/api/attendance/today");
     const t = S.today;
-
-    const stMap = {
-      present:  ["🟢","Ish joyida","var(--accent)"],
-      late:     ["🟡","Kech keldi","var(--orange)"],
-      absent:   ["⚪","Hali kelmagan","var(--hint)"],
-      on_leave: ["🔵","Ta'tilda","var(--link)"],
-      holiday:  ["🟣","Dam olish","var(--purple)"],
+    const stCfg = {
+      present:  ["green","Ish joyida"],
+      late:     ["orange","Kech keldi"],
+      absent:   ["dim","Hali kelmagan"],
+      on_leave: ["blue","Ta'tilida"],
+      holiday:  ["blue","Dam olish kuni"],
     };
-    const [sico,slbl,scol] = stMap[t.status] || stMap.absent;
+    const [scol, slbl] = stCfg[t.status] || stCfg.absent;
     const dayStr = new Date().toLocaleDateString("uz-UZ",
       {weekday:"long",day:"numeric",month:"long"});
 
     const tl = [
-      {ico:t.check_in ?"✅":"⭕",cls:t.check_in?"done":"empty",  time:t.check_in ||"--:--",lbl:"Keldi"},
-      {ico:t.lunch_out?"🍽":"⭕",cls:t.lunch_out?(t.lunch_in?"done":"active"):"empty",
-       time:t.lunch_out||"--:--",lbl:"Tushlik"},
-      {ico:t.check_out?"🚪":"⭕",cls:t.check_out?"done":"empty", time:t.check_out||"--:--",lbl:"Ketdi"},
+      {cls:t.check_in?"done":"empty", time:t.check_in||"--:--",  lbl:"Keldi",   letter:"CI"},
+      {cls:t.lunch_out?(t.lunch_in?"done":"active"):"empty",
+       time:t.lunch_out||"--:--", lbl:"Tushlik", letter:"T"},
+      {cls:t.check_out?"done":"empty",time:t.check_out||"--:--", lbl:"Ketdi",   letter:"KE"},
     ];
 
     let workRow = "";
     if (t.work_minutes != null) {
       const h=Math.floor(t.work_minutes/60), m=t.work_minutes%60;
-      workRow = `<div class="sep"></div>
-        <div class="card-row"><span class="card-label">⏱ Ish vaqti</span>
-        <span class="card-value">${h}s ${m}d</span></div>`;
+      workRow = `<div class="card-row"><span class="row-label">Ish vaqti</span>
+        <span class="row-value">${h}s ${m}d</span></div>`;
     }
 
-    const canCI  = !t.check_in;
-    const canCO  = t.check_in && !t.check_out;
-    const canLO  = t.check_in && !t.check_out && !t.lunch_out;
-    const canLI  = t.lunch_out && !t.lunch_in && !t.check_out;
+    const canCI = !t.check_in;
+    const canCO = t.check_in && !t.check_out;
+    const canLO = t.check_in && !t.check_out && !t.lunch_out;
+    const canLI = t.lunch_out && !t.lunch_in && !t.check_out;
 
     setContent(`
       <div class="card">
-        <div style="text-align:center;padding:8px 0 4px">
-          <div style="font-size:12px;color:var(--hint);margin-bottom:8px">${dayStr}</div>
-          <div style="font-size:44px;margin-bottom:6px">${sico}</div>
-          <div style="font-size:17px;font-weight:700;color:${scol}">${slbl}</div>
+        <div class="status-banner">
+          <div class="status-dot-lg ${scol}">
+            <div class="sdot-inner ${scol}"></div>
+          </div>
+          <div class="status-label">${slbl}</div>
+          <div class="status-date">${dayStr}</div>
         </div>
-        <div class="timeline">${tl.map(i=>`
-          <div class="tl"><div class="tl-dot ${i.cls}">${i.ico}</div>
-          <div class="tl-time">${i.time}</div>
-          <div class="tl-lbl">${i.lbl}</div></div>`).join("")}
-        </div>${workRow}
+        <div class="timeline" style="padding:0 8px 16px">
+          ${tl.map(i=>`<div class="tl-item">
+            <div class="tl-dot ${i.cls}">${i.letter}</div>
+            <div class="tl-time">${i.time}</div>
+            <div class="tl-lbl">${i.lbl}</div>
+          </div>`).join("")}
+        </div>
+        ${workRow?`<div style="border-top:1px solid var(--sep)">${workRow}</div>`:""}
       </div>
       <div class="act-grid">
         <button class="act-btn${canCI?" success":""}" onclick="Worker.checkin()" ${canCI?"":"disabled"}>
-          <span class="aico">✅</span><span class="albl">Keldim</span></button>
+          <div class="a-ico">✓</div><div class="a-lbl">Keldim</div></button>
         <button class="act-btn${canCO?" danger":""}" onclick="Worker.checkout()" ${canCO?"":"disabled"}>
-          <span class="aico">🚪</span><span class="albl">Ketdim</span></button>
+          <div class="a-ico">→</div><div class="a-lbl">Ketdim</div></button>
         <button class="act-btn${canLO?" warning":""}" onclick="Worker.lunchOut()" ${canLO?"":"disabled"}>
-          <span class="aico">🍽</span><span class="albl">Tushlikka</span></button>
+          <div class="a-ico">T</div><div class="a-lbl">Tushlikka</div></button>
         <button class="act-btn${canLI?" primary":""}" onclick="Worker.lunchIn()" ${canLI?"":"disabled"}>
-          <span class="aico">↩️</span><span class="albl">Qaytdim</span></button>
+          <div class="a-ico">←</div><div class="a-lbl">Qaytdim</div></button>
       </div>`);
   },
 
   checkin() {
+    hap.light();
     tg.showPopup({
-      title:"📍 Joylashuvni aniqlash",
+      title:"Joylashuvni aniqlash",
       message:"GPS orqali joriy joylashuv tekshiriladi.",
       buttons:[{id:"ok",type:"ok"},{type:"cancel"}],
     }, async btn => {
       if (btn !== "ok") return;
       try {
         const pos = await new Promise((res,rej) =>
-          navigator.geolocation.getCurrentPosition(res,rej,
-            {enableHighAccuracy:true,timeout:12000}));
+          navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:12000}));
         const data = await api("/api/attendance/checkin",{method:"POST",body:{
-          lat:pos.coords.latitude, lon:pos.coords.longitude,
-          accuracy:pos.coords.accuracy||0}});
-        hap.ok(); toast(data.message||"✅ Qabul qilindi");
+          lat:pos.coords.latitude, lon:pos.coords.longitude, accuracy:pos.coords.accuracy||0}});
+        hap.ok(); toast(data.message||"Qabul qilindi");
         Worker.renderHome();
       } catch(e) { hap.err(); tg.showAlert(e.message||"GPS xatosi"); }
     });
   },
 
   checkout() {
-    tg.showConfirm("🚪 Ish kunini tugatmoqchimisiz?", async ok => {
+    hap.light();
+    tg.showConfirm("Ish kunini tugatmoqchimisiz?", async ok => {
       if (!ok) return;
       try {
         const data = await api("/api/attendance/checkout",{method:"POST"});
-        hap.ok(); toast(data.message||"🚪 Qayd etildi");
+        hap.ok(); toast(data.message||"Qayd etildi");
         Worker.renderHome();
       } catch(e) { tg.showAlert(e.message); }
     });
   },
 
   async lunchOut() {
+    hap.light();
     try {
       const data = await api("/api/attendance/lunch_out",{method:"POST"});
-      hap.light(); toast(data.message||"🍽 Tushlikka chiqdingiz");
+      hap.ok(); toast(data.message||"Tushlikka chiqdingiz");
       Worker.renderHome();
     } catch(e) { tg.showAlert(e.message); }
   },
 
   async lunchIn() {
+    hap.light();
     try {
       const data = await api("/api/attendance/lunch_in",{method:"POST"});
-      hap.light(); toast(data.message||"✅ Tushlikdan qaytdingiz");
+      hap.ok(); toast(data.message||"Tushlikdan qaytdingiz");
       Worker.renderHome();
     } catch(e) { tg.showAlert(e.message); }
   },
 
   async renderHistory() {
     const rows = await api("/api/attendance/history");
-    if (!rows.length) { setContent(empty("📭","Davomat tarixi yo'q")); return; }
-
-    const sico = {present:"🟢",late:"🟡",absent:"⚪",on_leave:"🔵",holiday:"🟣"};
+    if (!rows.length) { setContent(emptyState("H","Davomat tarixi yo'q")); return; }
+    const sdot = {present:"green",late:"orange",absent:"dim",on_leave:"blue",holiday:"blue"};
     const present = rows.filter(r=>["present","late"].includes(r.status)).length;
     const late    = rows.filter(r=>r.status==="late").length;
     const absent  = rows.filter(r=>r.status==="absent").length;
-
     setContent(`
       <div class="stats-row">
         <div class="stat green"><div class="stat-n">${present}</div><div class="stat-l">Keldi</div></div>
         <div class="stat orange"><div class="stat-n">${late}</div><div class="stat-l">Kech</div></div>
         <div class="stat red"><div class="stat-n">${absent}</div><div class="stat-l">Kelmadi</div></div>
       </div>
-      <div class="card"><div class="card-title">So'nggi 60 kun</div>
+      <div class="sec-hdr"><span class="sec-title">So'nggi 60 kun</span></div>
+      <div class="card">
         ${rows.map(r => {
           const dur = r.work_minutes!=null ?
             `${Math.floor(r.work_minutes/60)}s ${r.work_minutes%60}d` : "";
           return `<div class="hist-item">
             <div class="hist-date">${fmtDate(r.date)}</div>
-            <div style="font-size:18px">${sico[r.status]||"⚪"}</div>
-            <div class="hist-times">${r.check_in||"–"} → ${r.check_out||"–"}</div>
+            <div><span class="sdot ${sdot[r.status]||"dim"}"></span></div>
+            <div class="hist-times">${r.check_in||"–"} — ${r.check_out||"–"}</div>
             <div class="hist-dur">${dur}</div>
           </div>`;}).join("")}
       </div>`);
@@ -588,8 +793,8 @@ const Worker = {
     const leaves = await api("/api/leave/my");
     const todayStr = today();
     setContent(`
-      <div class="card">
-        <div class="card-title">Yangi ta'til so'rovi</div>
+      <div class="sec-hdr"><span class="sec-title">Yangi so'rov</span></div>
+      <div class="card card-full">
         <div class="form-group">
           <label class="form-label">Boshlanish sanasi</label>
           <input class="form-input" type="date" id="lv-s" min="${todayStr}"/>
@@ -598,70 +803,76 @@ const Worker = {
           <label class="form-label">Tugash sanasi</label>
           <input class="form-input" type="date" id="lv-e" min="${todayStr}"/>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom:0">
           <label class="form-label">Sabab</label>
-          <textarea class="form-input" id="lv-r" rows="3" placeholder="Ta'til sababini kiriting..."></textarea>
+          <textarea class="form-input" id="lv-r" rows="3" placeholder="Ta'til sababini kiriting"></textarea>
         </div>
-        <button class="submit-btn" onclick="Worker.submitLeave()">📤 Yuborish</button>
       </div>
+      <button class="btn-primary" onclick="Worker.submitLeave()">Yuborish</button>
       ${leaves.length ? `
-        <div class="sec-hdr" style="margin-top:4px">
+        <div class="sec-hdr" style="margin-top:16px">
           <span class="sec-title">So'rovlar tarixi</span>
+          <span class="sec-count">${leaves.length} ta</span>
         </div>
         ${leaves.map(lv => `
           <div class="leave-card">
-            <div class="leave-hdr">
-              <div>
-                <div class="leave-dates">${fmtDate(lv.start_date)} — ${fmtDate(lv.end_date)}</div>
-                <div class="leave-meta">${lv.days} kun</div>
+            <div class="leave-body">
+              <div class="leave-hdr">
+                <div>
+                  <div class="leave-dates">${fmtDate(lv.start_date)} — ${fmtDate(lv.end_date)}</div>
+                  <div class="leave-meta">${lv.days} kun</div>
+                </div>
+                ${leaveChip(lv.status)}
               </div>
-              ${leaveChip(lv.status)}
+              <div class="leave-reason">${lv.reason}</div>
             </div>
-            <div class="leave-reason">${lv.reason}</div>
           </div>`).join("")}` : ""}
     `);
   },
 
   async submitLeave() {
+    hap.light();
     const s = document.getElementById("lv-s")?.value;
     const e = document.getElementById("lv-e")?.value;
     const r = document.getElementById("lv-r")?.value.trim();
-    if (!s||!e||!r) { toast("⚠️ Barcha maydonlarni to'ldiring"); return; }
+    if (!s||!e||!r) { hap.warn(); toast("Barcha maydonlarni to'ldiring"); return; }
     try {
       const data = await api("/api/leave",{method:"POST",body:{start_date:s,end_date:e,reason:r}});
-      hap.ok(); toast(data.message||"✅ Yuborildi");
+      hap.ok(); toast(data.message||"Yuborildi");
       Worker.renderLeave();
-    } catch(e) { tg.showAlert(e.message); }
+    } catch(e) { hap.err(); tg.showAlert(e.message); }
   },
 
   renderProfile() {
     const u = S.me;
     const roleLabel = {worker:"Ishchi",admin:"Admin",superadmin:"Superadmin"};
     setContent(`
-      <div class="card" style="text-align:center;padding:20px">
-        <div style="width:72px;height:72px;border-radius:50%;background:rgba(10,132,255,.18);
-          color:var(--link);font-size:26px;font-weight:700;display:flex;
-          align-items:center;justify-content:center;margin:0 auto 12px">
-          ${initials(u.full_name)}</div>
-        <div style="font-size:20px;font-weight:700;margin-bottom:8px">${u.full_name}</div>
-        <span class="badge ${u.role}">${roleLabel[u.role]||u.role}</span>
-      </div>
       <div class="card">
-        <div class="card-title">Ma'lumotlar</div>
-        <div class="card-row"><span class="card-label">🏢 Filial</span>
-          <span class="card-value">${u.branch?.name||"—"}</span></div>
-        <div class="card-row"><span class="card-label">💼 Lavozim</span>
-          <span class="card-value">${u.position?.name||"—"}</span></div>
-        <div class="card-row"><span class="card-label">⏰ Jadval</span>
-          <span class="card-value">${u.schedule?.name||"—"}</span></div>
-        ${u.schedule ? `<div class="card-row"><span class="card-label">🕐 Ish vaqti</span>
-          <span class="card-value">${u.schedule.start_time}–${u.schedule.end_time}</span></div>` : ""}
-        ${u.schedule?.lunch_start ? `<div class="card-row"><span class="card-label">🍽 Tushlik</span>
-          <span class="card-value">${u.schedule.lunch_start}–${u.schedule.lunch_end}</span></div>` : ""}
+        <div style="text-align:center;padding:24px 16px 16px">
+          <div style="width:72px;height:72px;border-radius:50%;
+            background:rgba(59,130,246,.14);color:var(--blue);
+            font-size:26px;font-weight:700;display:flex;
+            align-items:center;justify-content:center;margin:0 auto 12px">
+            ${initials(u.full_name)}</div>
+          <div style="font-size:20px;font-weight:800;margin-bottom:8px">${u.full_name}</div>
+          <span class="role-tag ${u.role}">${roleLabel[u.role]||u.role}</span>
+        </div>
+      </div>
+      <div class="sec-hdr"><span class="sec-title">Ma'lumotlar</span></div>
+      <div class="card">
+        <div class="card-row"><span class="row-label">Filial</span>
+          <span class="row-value">${u.branch?.name||"—"}</span></div>
+        <div class="card-row"><span class="row-label">Lavozim</span>
+          <span class="row-value">${u.position?.name||"—"}</span></div>
+        <div class="card-row"><span class="row-label">Jadval</span>
+          <span class="row-value">${u.schedule?.name||"—"}</span></div>
+        ${u.schedule ? `<div class="card-row"><span class="row-label">Ish vaqti</span>
+          <span class="row-value">${u.schedule.start_time} – ${u.schedule.end_time}</span></div>` : ""}
+        ${u.schedule?.lunch_start ? `<div class="card-row"><span class="row-label">Tushlik</span>
+          <span class="row-value">${u.schedule.lunch_start} – ${u.schedule.lunch_end}</span></div>` : ""}
       </div>`);
   },
 };
-
 
 // ════════════════════════════════════════════════════════════════════════════
 //  ADMIN MODULE
@@ -670,41 +881,33 @@ const Admin = {
 
   async renderMonitoring() {
     const data = await api("/api/admin/monitoring");
-    if (!data.length) { setContent(empty("📭","Ma'lumot yo'q")); return; }
-
+    if (!data.length) { setContent(emptyState("M","Ma'lumot yo'q")); return; }
     let html = "";
     for (const br of data) {
-      const rows = br.workers.map(w => {
-        const st = w.at_lunch ? "lunch" : w.status;
-        return `<div class="list-item">
+      const rows = br.workers.map(w => `
+        <div class="list-item">
           <div class="li-av">${initials(w.full_name)}</div>
           <div class="li-info">
             <div class="li-name">${w.full_name}</div>
-            <div class="li-sub">${w.position||""} ${w.check_in?"· "+w.check_in:""}</div>
+            <div class="li-sub">${[w.position,w.check_in?"Keldi: "+w.check_in:""].filter(Boolean).join(" · ")}</div>
           </div>
-          <div class="li-right">${statusChip(st, w.at_lunch)}</div>
-        </div>`;}).join("") || `<div style="padding:10px 0;color:var(--hint);font-size:14px">Xodimlar yo'q</div>`;
-
+          <div class="li-right">${statusChip(w.at_lunch?"lunch":w.status, w.at_lunch)}</div>
+        </div>`).join("") ||
+        `<div class="card-row"><span class="row-label" style="color:var(--hint)">Xodimlar yo'q</span></div>`;
       html += `
+        <div class="sec-hdr"><span class="sec-title">${br.branch_name}</span></div>
         <div class="stats-row">
           <div class="stat green"><div class="stat-n">${br.present}</div><div class="stat-l">Keldi</div></div>
           <div class="stat red"><div class="stat-n">${br.absent}</div><div class="stat-l">Kelmadi</div></div>
           <div class="stat blue"><div class="stat-n">${br.total}</div><div class="stat-l">Jami</div></div>
         </div>
-        <div class="card"><div class="card-title">${br.branch_name}</div>${rows}</div>`;
+        <div class="card">${rows}</div>`;
     }
     setContent(html);
   },
 
   async renderWorkers() {
     const workers = await api("/api/admin/workers");
-    const role = S.me.role;
-    let branches=[], positions=[], schedules=[];
-    if (role === "superadmin" || role === "admin") {
-      [branches, positions, schedules] = await Promise.all([
-        getLookup("branches"), getLookup("positions"), getLookup("schedules")]);
-    }
-
     const rows = workers.map(w => `
       <div class="list-item tap" onclick="Admin.workerDetail(${w.id})">
         <div class="li-av">${initials(w.full_name)}</div>
@@ -713,22 +916,21 @@ const Admin = {
           <div class="li-sub">${[w.position?.name,w.branch?.name].filter(Boolean).join(" · ")}</div>
         </div>
         <div class="li-right">
-          <span class="dot-badge ${w.telegram_id?"on":"off"}"></span>
+          <span class="sdot ${w.telegram_id?"green":"dim"}"></span>
+          <span class="chevron">›</span>
         </div>
-      </div>`).join("") || empty("👥","Xodimlar ro'yxati bo'sh").replace('<div class="empty">','<div>');
+      </div>`).join("");
 
     setContent(`
       <div class="sec-hdr">
         <span class="sec-title">Xodimlar</span>
         <div style="display:flex;gap:8px;align-items:center">
           <span class="sec-count">${workers.length} ta</span>
-          <span class="sec-add" onclick="Admin.addWorkerForm()">＋</span>
+          <span class="sec-add" onclick="Admin.addWorkerForm()">+</span>
         </div>
       </div>
-      <div class="card">${rows}</div>
-      <div style="font-size:12px;color:var(--hint);text-align:center;margin-top:4px">
-        🟢 = Bot bilan bog'langan
-      </div>`);
+      <div class="card">${rows || emptyState("X","Xodimlar yo'q").replace('class="empty-state"','style="padding:32px 16px"')}</div>
+      <div class="info-box"><p>Yashil nuqta — bot bilan bog'langan xodim</p></div>`);
   },
 
   async workerDetail(wid) {
@@ -738,65 +940,66 @@ const Admin = {
   async _workerDetailView({wid}) {
     const workers = await api("/api/admin/workers");
     const w = workers.find(x=>x.id===wid);
-    if (!w) { setContent(empty("⚠️","Ishchi topilmadi")); return; }
+    if (!w) { setContent(emptyState("!","Ishchi topilmadi")); return; }
     setContent(`
-      <div class="card" style="text-align:center;padding:20px">
-        <div style="width:60px;height:60px;border-radius:50%;background:rgba(10,132,255,.18);
-          color:var(--link);font-size:22px;font-weight:700;display:flex;
-          align-items:center;justify-content:center;margin:0 auto 10px">
-          ${initials(w.full_name)}</div>
-        <div style="font-size:18px;font-weight:700">${w.full_name}</div>
-      </div>
       <div class="card">
-        <div class="card-title">Ma'lumotlar</div>
-        <div class="card-row"><span class="card-label">🏢 Filial</span>
-          <span class="card-value">${w.branch?.name||"—"}</span></div>
-        <div class="card-row"><span class="card-label">💼 Lavozim</span>
-          <span class="card-value">${w.position?.name||"—"}</span></div>
-        <div class="card-row"><span class="card-label">⏰ Jadval</span>
-          <span class="card-value">${w.schedule?.name||"—"}</span></div>
-        <div class="card-row"><span class="card-label">📱 Bot</span>
-          <span class="card-value">${w.telegram_id?"Bog'langan ✅":"Bog'lanmagan ❌"}</span></div>
+        <div style="text-align:center;padding:20px 16px 16px">
+          <div style="width:60px;height:60px;border-radius:50%;
+            background:rgba(59,130,246,.14);color:var(--blue);
+            font-size:22px;font-weight:700;display:flex;
+            align-items:center;justify-content:center;margin:0 auto 10px">
+            ${initials(w.full_name)}</div>
+          <div style="font-size:18px;font-weight:800">${w.full_name}</div>
+        </div>
+      </div>
+      <div class="sec-hdr"><span class="sec-title">Ma'lumotlar</span></div>
+      <div class="card">
+        <div class="card-row"><span class="row-label">Filial</span>
+          <span class="row-value">${w.branch?.name||"—"}</span></div>
+        <div class="card-row"><span class="row-label">Lavozim</span>
+          <span class="row-value">${w.position?.name||"—"}</span></div>
+        <div class="card-row"><span class="row-label">Jadval</span>
+          <span class="row-value">${w.schedule?.name||"—"}</span></div>
+        <div class="card-row"><span class="row-label">Bot holati</span>
+          <span class="row-value">${w.telegram_id?"Bog'langan":"Bog'lanmagan"}</span></div>
       </div>
       ${w.invite_code ? `
+        <div class="sec-hdr"><span class="sec-title">Taklif havolasi</span></div>
         <div class="invite-box">
-          <div style="font-size:12px;font-weight:600;color:var(--hint);margin-bottom:6px">
-            Taklif havolasi (amal qiladi)</div>
           <div class="invite-link">https://t.me/${BOT_USERNAME}?start=invite_${w.invite_code}</div>
-          <button class="copy-btn" onclick="Admin.copyInvite('${w.invite_code}')">📋 Nusxa olish</button>
+          <button class="copy-btn" onclick="Admin.copyInvite('${w.invite_code}')">Nusxa olish</button>
         </div>` : ""}
-      <button class="submit-btn" style="margin-top:12px" onclick="Admin.regenInvite(${w.id})">
-        🔄 Yangi taklif kodi</button>
-      <button class="danger-btn" onclick="Admin.removeWorker(${w.id},'${w.full_name}')">
-        🗑 Ishchini o'chirish</button>`);
+      <button class="btn-secondary" onclick="Admin.regenInvite(${w.id})">Yangi taklif kodi</button>
+      <button class="btn-danger" onclick="Admin.removeWorker(${w.id},'${w.full_name}')">Ishchini o'chirish</button>`);
   },
 
   copyInvite(code) {
     const link = `https://t.me/${BOT_USERNAME}?start=invite_${code}`;
-    navigator.clipboard?.writeText(link).then(() => toast("📋 Nusxa olindi"))
+    navigator.clipboard?.writeText(link).then(() => { hap.ok(); toast("Nusxa olindi"); })
       .catch(() => toast("Link: "+link));
   },
 
   async regenInvite(wid) {
+    hap.light();
     tg.showConfirm("Yangi taklif kodi yaratilsinmi? Eski kod bekor bo'ladi.", async ok => {
       if (!ok) return;
       try {
         await api(`/api/admin/workers/${wid}/invite`,{method:"POST"});
-        hap.ok(); toast("✅ Yangi kod yaratildi");
+        hap.ok(); toast("Yangi kod yaratildi");
         popView(); setTimeout(()=>Admin.workerDetail(wid),100);
-      } catch(e) { tg.showAlert(e.message); }
+      } catch(e) { hap.err(); tg.showAlert(e.message); }
     });
   },
 
   async removeWorker(wid, name) {
+    hap.med();
     tg.showConfirm(`"${name}" ni o'chirishni tasdiqlaysizmi?`, async ok => {
       if (!ok) return;
       try {
         await api(`/api/admin/workers/${wid}`,{method:"DELETE"});
-        hap.ok(); toast("✅ O'chirildi");
-        popView();
-        S.lookups = {};
-      } catch(e) { tg.showAlert(e.message); }
+        hap.ok(); toast("O'chirildi");
+        popView(); S.lookups={};
+      } catch(e) { hap.err(); tg.showAlert(e.message); }
     });
   },
 
@@ -805,8 +1008,8 @@ const Admin = {
       const [branches, positions, schedules] = await Promise.all([
         getLookup("branches"), getLookup("positions"), getLookup("schedules")]);
       setContent(`
-        <div class="card">
-          <div class="card-title">Yangi ishchi qo'shish</div>
+        <div class="sec-hdr"><span class="sec-title">Yangi ishchi</span></div>
+        <div class="card card-full">
           <div class="form-group">
             <label class="form-label">To'liq ism</label>
             <input class="form-input" id="nw-name" placeholder="Ism Familiya"/>
@@ -825,128 +1028,129 @@ const Admin = {
               ${positions.map(p=>`<option value="${p.id}">${p.name}</option>`).join("")}
             </select>
           </div>
-          <div class="form-group">
+          <div class="form-group" style="margin-bottom:0">
             <label class="form-label">Ish jadvali</label>
             <select class="form-input" id="nw-sc">
               <option value="">— Tanlang —</option>
               ${schedules.map(s=>`<option value="${s.id}">${s.name} (${s.start_time}–${s.end_time})</option>`).join("")}
             </select>
           </div>
-          <button class="submit-btn" onclick="Admin.createWorker()">✅ Yaratish</button>
-        </div>`);
+        </div>
+        <button class="btn-primary" onclick="Admin.createWorker()">Yaratish</button>`);
     });
   },
 
   async createWorker() {
+    hap.light();
     const name = document.getElementById("nw-name")?.value.trim();
     const br   = parseInt(document.getElementById("nw-br")?.value)||0;
     const pos  = parseInt(document.getElementById("nw-pos")?.value)||0;
     const sc   = parseInt(document.getElementById("nw-sc")?.value)||0;
-    if (!name||!br||!pos||!sc) { toast("⚠️ Barcha maydonlarni to'ldiring"); return; }
+    if (!name||!br||!pos||!sc) { hap.warn(); toast("Barcha maydonlarni to'ldiring"); return; }
     try {
       const data = await api("/api/admin/workers",{method:"POST",body:{
         full_name:name, branch_id:br, position_id:pos, schedule_id:sc}});
       hap.ok();
       setContent(`
-        <div class="card" style="text-align:center;padding:20px">
-          <div style="font-size:48px;margin-bottom:12px">✅</div>
-          <div style="font-size:17px;font-weight:700;margin-bottom:6px">Ishchi yaratildi</div>
-          <div style="font-size:14px;color:var(--hint);margin-bottom:16px">
-            Quyidagi havolani ishchiga yuboring</div>
+        <div class="card" style="text-align:center;padding:28px 16px">
+          <div style="font-size:17px;font-weight:800;margin-bottom:6px">Ishchi yaratildi</div>
+          <div style="font-size:14px;color:var(--hint)">Quyidagi havolani ishchiga yuboring</div>
         </div>
+        <div class="sec-hdr"><span class="sec-title">Taklif havolasi</span></div>
         <div class="invite-box">
-          <div style="font-size:12px;font-weight:600;color:var(--hint);margin-bottom:6px">
-            Taklif havolasi (24 soat amal qiladi)</div>
+          <div style="font-size:11px;font-weight:700;color:var(--hint);text-transform:uppercase;
+            letter-spacing:.5px;margin-bottom:8px">24 soat amal qiladi</div>
           <div class="invite-link">${data.invite_link}</div>
           <button class="copy-btn" onclick="navigator.clipboard?.writeText('${data.invite_link}')
-            .then(()=>toast('📋 Nusxa olindi'))">📋 Nusxa olish</button>
-        </div>
-        <button class="submit-btn" style="margin-top:10px" onclick="popView()">← Orqaga</button>`);
-      S.lookups = {};
-    } catch(e) { tg.showAlert(e.message); }
+            .then(()=>{hap.ok();toast('Nusxa olindi')})">Nusxa olish</button>
+        </div>`);
+      S.lookups={};
+    } catch(e) { hap.err(); tg.showAlert(e.message); }
   },
 
   async renderLeaves() {
     const leaves = await api("/api/admin/leaves");
-    if (!leaves.length) { setContent(empty("✅","Kutilayotgan so'rovlar yo'q")); return; }
+    if (!leaves.length) { setContent(emptyState("T","Kutilayotgan so'rovlar yo'q")); return; }
     setContent(`
       <div class="sec-hdr">
         <span class="sec-title">Kutilmoqda</span>
-        <span class="sec-count">${leaves.length}</span>
+        <span class="sec-count">${leaves.length} ta</span>
       </div>
       ${leaves.map(lv => `
         <div class="leave-card" id="lvc-${lv.id}">
-          <div class="leave-hdr">
-            <div>
-              <div style="font-size:14px;font-weight:700;margin-bottom:2px">${lv.worker_name}</div>
-              <div class="leave-dates">${fmtDate(lv.start_date)} — ${fmtDate(lv.end_date)}</div>
-              <div class="leave-meta">${lv.days} kun ${lv.created_at?"· "+lv.created_at:""}</div>
+          <div class="leave-body">
+            <div class="leave-hdr">
+              <div>
+                <div class="leave-name">${lv.worker_name}</div>
+                <div class="leave-dates">${fmtDate(lv.start_date)} — ${fmtDate(lv.end_date)}</div>
+                <div class="leave-meta">${lv.days} kun${lv.created_at?" · "+lv.created_at:""}</div>
+              </div>
             </div>
-          </div>
-          <div class="leave-reason">${lv.reason}</div>
-          <div class="leave-acts">
-            <button class="la-btn approve" onclick="Admin.reviewLeave(${lv.id},'approve')">✅ Tasdiqlash</button>
-            <button class="la-btn reject"  onclick="Admin.reviewLeave(${lv.id},'reject')">❌ Rad etish</button>
+            <div class="leave-reason">${lv.reason}</div>
+            <div class="leave-acts">
+              <button class="la-btn approve" onclick="Admin.reviewLeave(${lv.id},'approve')">Tasdiqlash</button>
+              <button class="la-btn reject"  onclick="Admin.reviewLeave(${lv.id},'reject')">Rad etish</button>
+            </div>
           </div>
         </div>`).join("")}`);
   },
 
   async reviewLeave(id, action) {
-    const msg = action==="approve" ? "tasdiqlaysizmi?" : "rad etasizmi?";
-    tg.showConfirm(`Bu so'rovni ${msg}`, async ok => {
+    hap.light();
+    const msg = action==="approve" ? "Tasdiqlaysizmi?" : "Rad etasizmi?";
+    tg.showConfirm(msg, async ok => {
       if (!ok) return;
       try {
         await api(`/api/admin/leaves/${id}/review`,{method:"POST",body:{action}});
         document.getElementById(`lvc-${id}`)?.remove();
-        hap.ok(); toast(action==="approve"?"✅ Tasdiqlandi":"❌ Rad etildi");
+        hap.ok(); toast(action==="approve"?"Tasdiqlandi":"Rad etildi");
         if (!document.querySelector("[id^='lvc-']"))
-          setContent(empty("✅","Kutilayotgan so'rovlar yo'q"));
-      } catch(e) { tg.showAlert(e.message); }
+          setContent(emptyState("T","Kutilayotgan so'rovlar yo'q"));
+      } catch(e) { hap.err(); tg.showAlert(e.message); }
     });
   },
 
   renderReport() {
     const mon = thisMonth();
     setContent(`
-      <div class="card">
-        <div class="card-title">Excel hisobot</div>
-        <div class="form-group">
+      <div class="sec-hdr"><span class="sec-title">Excel Hisobot</span></div>
+      <div class="card card-full">
+        <div class="form-group" style="margin-bottom:0">
           <label class="form-label">Oy</label>
           <input class="form-input" type="month" id="rep-month" value="${mon}"/>
         </div>
-        <button class="submit-btn" onclick="Admin.downloadReport()">📥 Hisobotni yuklab olish</button>
       </div>
-      <div class="card" style="background:rgba(10,132,255,.08)">
-        <div style="font-size:13px;color:var(--hint);line-height:1.5">
-          💡 Hisobot generatsiya qilinadi va brauzerda ochiladi.
-          Telegram Desktop da fayl menejerida saqlanadi.
-        </div>
+      <button class="btn-primary" onclick="Admin.downloadReport()">Hisobotni yuklab olish</button>
+      <div class="info-box" style="margin-top:10px">
+        <p>Hisobot generatsiya qilinadi va brauzerda ochiladi. Telegram Desktop da fayl menejerida saqlanadi.</p>
       </div>`);
   },
 
   async downloadReport() {
+    hap.light();
     const month = document.getElementById("rep-month")?.value;
-    if (!month) { toast("⚠️ Oy tanlang"); return; }
+    if (!month) { hap.warn(); toast("Oy tanlang"); return; }
     try {
       const data = await api("/api/admin/report",{method:"POST",body:{month}});
       hap.ok();
-      const url = `${API}/api/report/file/${data.token}`;
-      tg.openLink(url);
-      toast("📥 Hisobot yuklanmoqda...");
-    } catch(e) { tg.showAlert(e.message); }
+      tg.openLink(`${API}/api/report/file/${data.token}`);
+      toast("Hisobot yuklanmoqda");
+    } catch(e) { hap.err(); tg.showAlert(e.message); }
   },
 
   async renderAttEdit() {
     const workers = await api("/api/admin/workers");
-    if (!workers.length) { setContent(empty("👥","Xodimlar yo'q")); return; }
+    if (!workers.length) { setContent(emptyState("X","Xodimlar yo'q")); return; }
     setContent(`
+      <div class="sec-hdr"><span class="sec-title">Xodim tanlang</span></div>
       <div class="card">
-        <div class="card-title">Xodim tanlang</div>
         ${workers.map(w => `
           <div class="list-item tap" onclick="Admin.attEditWorker(${w.id},'${w.full_name}')">
             <div class="li-av">${initials(w.full_name)}</div>
-            <div class="li-info"><div class="li-name">${w.full_name}</div>
-              <div class="li-sub">${w.branch?.name||""}</div></div>
+            <div class="li-info">
+              <div class="li-name">${w.full_name}</div>
+              <div class="li-sub">${w.branch?.name||""}</div>
+            </div>
             <div class="li-right"><span class="chevron">›</span></div>
           </div>`).join("")}
       </div>`);
@@ -957,14 +1161,14 @@ const Admin = {
       const recs = await api(`/api/admin/attendance/${wid}?month=${thisMonth()}`);
       const mon = thisMonth();
       setContent(`
-        <div style="font-size:16px;font-weight:700;margin-bottom:12px">${wname}</div>
-        <div class="month-picker">
-          <input class="form-input" type="month" id="ae-month" value="${mon}"
-            onchange="Admin._loadAttRecs(${wid},'${wname}')"/>
+        <div class="card card-full">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">${wname} — Oy</label>
+            <input class="form-input" type="month" id="ae-month" value="${mon}"
+              onchange="Admin._loadAttRecs(${wid},'${wname}')"/>
+          </div>
         </div>
-        <div id="ae-list">
-          ${Admin._attRecRows(recs)}
-        </div>`);
+        <div id="ae-list">${Admin._attRecRows(recs)}</div>`);
     }, {wid, wname});
   },
 
@@ -975,18 +1179,17 @@ const Admin = {
   },
 
   _attRecRows(recs) {
-    if (!recs.length) return empty("📭","Bu oyda yozuvlar yo'q");
-    return `<div class="card">${recs.map(r => `
-      <div class="list-item tap" onclick="Admin.editAttRecord(${JSON.stringify(r).replace(/"/g,'&quot;')})">
-        <div class="li-info">
-          <div class="li-name">${fmtDate(r.date)}</div>
-          <div class="li-sub">
-            ${r.check_in||"–"} → ${r.check_out||"–"}
-            ${r.admin_note?`· <i>${r.admin_note}</i>`:""}
+    if (!recs.length) return emptyState("H","Bu oyda yozuvlar yo'q");
+    return `<div class="sec-hdr" style="margin-top:4px"><span class="sec-title">Yozuvlar</span></div>
+      <div class="card">${recs.map(r => `
+        <div class="list-item tap" onclick="Admin.editAttRecord(${JSON.stringify(r).replace(/"/g,'&quot;')})">
+          <div class="li-info">
+            <div class="li-name">${fmtDate(r.date)}</div>
+            <div class="li-sub">${r.check_in||"–"} — ${r.check_out||"–"}
+              ${r.admin_note?`· ${r.admin_note}`:""}</div>
           </div>
-        </div>
-        <div class="li-right">${statusChip(r.status,false)}<span class="chevron"> ›</span></div>
-      </div>`).join("")}</div>`;
+          <div class="li-right">${statusChip(r.status,false)}<span class="chevron"> ›</span></div>
+        </div>`).join("")}</div>`;
   },
 
   editAttRecord(r) {
@@ -994,27 +1197,35 @@ const Admin = {
       const statuses = ["present","late","absent","on_leave","holiday"];
       const labels   = ["Keldi","Kech keldi","Kelmadi","Ta'tilda","Bayram"];
       setContent(`
-        <div class="card">
-          <div class="card-title">${fmtDate(r.date)} — Tahrirlash</div>
-          <div class="form-group"><label class="form-label">Kelish vaqti</label>
-            <input class="form-input" type="time" id="ea-ci" value="${r.check_in||""}"/></div>
-          <div class="form-group"><label class="form-label">Ketish vaqti</label>
-            <input class="form-input" type="time" id="ea-co" value="${r.check_out||""}"/></div>
-          <div class="form-group"><label class="form-label">Holat</label>
+        <div class="sec-hdr"><span class="sec-title">${fmtDate(r.date)} — Tahrirlash</span></div>
+        <div class="card card-full">
+          <div class="form-group">
+            <label class="form-label">Kelish vaqti</label>
+            <input class="form-input" type="time" id="ea-ci" value="${r.check_in||""}"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ketish vaqti</label>
+            <input class="form-input" type="time" id="ea-co" value="${r.check_out||""}"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Holat</label>
             <select class="form-input" id="ea-st">
               ${statuses.map((s,i)=>
                 `<option value="${s}"${s===r.status?" selected":""}>${labels[i]}</option>`
               ).join("")}
             </select>
           </div>
-          <div class="form-group"><label class="form-label">Admin izohi</label>
-            <input class="form-input" id="ea-note" value="${r.admin_note||""}" placeholder="Izohlang..."/></div>
-          <button class="submit-btn" onclick="Admin.saveAttEdit(${r.id})">💾 Saqlash</button>
-        </div>`);
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Admin izohi</label>
+            <input class="form-input" id="ea-note" value="${r.admin_note||""}" placeholder="Izohlang"/>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="Admin.saveAttEdit(${r.id})">Saqlash</button>`);
     }, {r});
   },
 
   async saveAttEdit(attId) {
+    hap.light();
     const ci   = document.getElementById("ea-ci")?.value||null;
     const co   = document.getElementById("ea-co")?.value||null;
     const st   = document.getElementById("ea-st")?.value;
@@ -1023,12 +1234,11 @@ const Admin = {
       await api("/api/admin/attendance/edit",{method:"POST",body:{
         attendance_id:attId, check_in:ci||null, check_out:co||null,
         status:st, note:note||null}});
-      hap.ok(); toast("✅ Saqlandi");
+      hap.ok(); toast("Saqlandi");
       popView();
-    } catch(e) { tg.showAlert(e.message); }
+    } catch(e) { hap.err(); tg.showAlert(e.message); }
   },
 };
-
 
 // ════════════════════════════════════════════════════════════════════════════
 //  SUPERADMIN MODULE
@@ -1037,14 +1247,15 @@ const SA = {
 
   async renderDashboard() {
     const s = await api("/api/superadmin/stats");
-    const dayStr = new Date().toLocaleDateString("uz-UZ",
-      {day:"numeric",month:"long",year:"numeric"});
+    const dayStr = new Date().toLocaleDateString("uz-UZ",{day:"numeric",month:"long",year:"numeric"});
     setContent(`
-      <div class="card" style="text-align:center;padding:16px">
-        <div style="font-size:12px;color:var(--hint);margin-bottom:4px">${dayStr}</div>
-        <div style="font-size:17px;font-weight:700">Tizim ko'rsatkichlari</div>
+      <div class="card">
+        <div style="text-align:center;padding:16px 16px 8px">
+          <div style="font-size:12px;color:var(--hint);margin-bottom:4px">${dayStr}</div>
+          <div style="font-size:18px;font-weight:800">Tizim ko'rsatkichlari</div>
+        </div>
       </div>
-      <div class="stats-row">
+      <div class="stats-row two">
         <div class="stat green"><div class="stat-n">${s.checked_in_today}</div>
           <div class="stat-l">Bugun keldi</div></div>
         <div class="stat orange"><div class="stat-n">${s.pending_leaves}</div>
@@ -1058,17 +1269,39 @@ const SA = {
         <div class="stat blue"><div class="stat-n">${s.total_branches}</div>
           <div class="stat-l">Filiallar</div></div>
       </div>
-      <div class="card" style="background:rgba(10,132,255,.07)">
-        <div style="font-size:13px;color:var(--hint);line-height:1.55">
-          💡 Tizimni boshqarish uchun yuqoridagi tablardan foydalaning.
-          Filiallar → Lavozimlar → Jadvallar → Adminlar tartibida sozlang.
-        </div>
+      <div class="info-box">
+        <p>Tizimni boshqarish uchun yuqoridagi tablardan foydalaning. Filiallar — Lavozimlar — Jadvallar — Adminlar tartibida sozlang.</p>
       </div>`);
   },
 
-  async renderWorkers() {
-    // Superadmin uses same worker list but sees all branches
-    await Admin.renderWorkers();
+  async renderWorkers() { await Admin.renderWorkers(); },
+
+  renderReport() {
+    const mon = thisMonth();
+    setContent(`
+      <div class="sec-hdr"><span class="sec-title">Excel Hisobot</span></div>
+      <div class="card card-full">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Oy</label>
+          <input class="form-input" type="month" id="rep-month-sa" value="${mon}"/>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="SA.downloadReport()">Hisobotni yuklab olish</button>
+      <div class="info-box" style="margin-top:10px">
+        <p>Barcha filiallar bo'yicha umumiy hisobot generatsiya qilinadi va brauzerda ochiladi.</p>
+      </div>`);
+  },
+
+  async downloadReport() {
+    hap.light();
+    const month = document.getElementById("rep-month-sa")?.value;
+    if (!month) { hap.warn(); toast("Oy tanlang"); return; }
+    try {
+      const data = await api("/api/admin/report",{method:"POST",body:{month}});
+      hap.ok();
+      tg.openLink(`${API}/api/report/file/${data.token}`);
+      toast("Hisobot yuklanmoqda");
+    } catch(e) { hap.err(); tg.showAlert(e.message); }
   },
 
   async renderBranches() {
@@ -1078,55 +1311,66 @@ const SA = {
         <span class="sec-title">Filiallar</span>
         <div style="display:flex;gap:8px;align-items:center">
           <span class="sec-count">${branches.length} ta</span>
-          <span class="sec-add" onclick="SA.addBranchForm()">＋</span>
+          <span class="sec-add" onclick="SA.addBranchForm()">+</span>
         </div>
       </div>
       ${branches.length ? branches.map(b => `
         <div class="branch-card" onclick="SA.branchDetail(${b.id})">
-          <div class="branch-name">🏢 ${b.name}</div>
-          <div class="branch-meta">Radius: ${b.radius}m · ${b.lat.toFixed(4)}, ${b.lon.toFixed(4)}</div>
-        </div>`).join("") : empty("🏢","Filiallar yo'q")}`);
+          <div class="branch-ico">F</div>
+          <div class="branch-info">
+            <div class="branch-name">${b.name}</div>
+            <div class="branch-meta">Radius: ${b.radius}m · ${b.lat.toFixed(4)}, ${b.lon.toFixed(4)}</div>
+          </div>
+          <span class="chevron">›</span>
+        </div>`).join("") : emptyState("F","Filiallar yo'q","Yangi filial qo'shing")}`);
   },
 
   branchDetail(bid) {
     pushView(async () => {
       const branches = await api("/api/superadmin/branches");
       const b = branches.find(x=>x.id===bid);
-      if (!b) { setContent(empty("⚠️","Filial topilmadi")); return; }
+      if (!b) { setContent(emptyState("!","Filial topilmadi")); return; }
       setContent(`
+        <div class="sec-hdr"><span class="sec-title">${b.name}</span></div>
         <div class="card">
-          <div class="card-title">Filial ma'lumotlari</div>
-          <div class="card-row"><span class="card-label">🏢 Nomi</span>
-            <span class="card-value">${b.name}</span></div>
-          <div class="card-row"><span class="card-label">📏 Radius</span>
-            <span class="card-value">${b.radius}m</span></div>
-          <div class="card-row"><span class="card-label">📍 Koordinatalar</span>
-            <span class="card-value">${b.lat.toFixed(5)}, ${b.lon.toFixed(5)}</span></div>
+          <div class="card-row"><span class="row-label">Nomi</span>
+            <span class="row-value">${b.name}</span></div>
+          <div class="card-row"><span class="row-label">Radius</span>
+            <span class="row-value">${b.radius} m</span></div>
+          <div class="card-row"><span class="row-label">Koordinatalar</span>
+            <span class="row-value">${b.lat.toFixed(5)}, ${b.lon.toFixed(5)}</span></div>
         </div>
-        <button class="submit-btn" onclick="SA.editBranchForm(${JSON.stringify(b).replace(/"/g,'&quot;')})">
-          ✏️ Tahrirlash</button>
-        <button class="danger-btn" onclick="SA.deleteBranch(${b.id},'${b.name}')">
-          🗑 O'chirish</button>`);
+        <button class="btn-secondary" onclick="SA.editBranchForm(${JSON.stringify(b).replace(/"/g,'&quot;')})">
+          Tahrirlash</button>
+        <button class="btn-danger" onclick="SA.deleteBranch(${b.id},'${b.name}')">
+          O'chirish</button>`);
     }, {bid});
   },
 
   addBranchForm() {
     pushView(async () => {
       setContent(`
-        <div class="card">
-          <div class="card-title">Yangi filial</div>
-          <div class="form-group"><label class="form-label">Nomi</label>
-            <input class="form-input" id="nb-name" placeholder="Filial nomi"/></div>
-          <div class="form-group"><label class="form-label">Radius (metr)</label>
-            <input class="form-input" type="number" id="nb-r" value="100" min="10" max="2000"/></div>
-          <div class="form-group"><label class="form-label">Kenglik (Latitude)</label>
-            <input class="form-input" type="number" id="nb-lat" step="0.00001" placeholder="41.29950"/></div>
-          <div class="form-group"><label class="form-label">Uzunlik (Longitude)</label>
-            <input class="form-input" type="number" id="nb-lon" step="0.00001" placeholder="69.24007"/></div>
-          <button class="submit-btn" style="background:rgba(10,132,255,.15);color:var(--link);margin-bottom:8px"
-            onclick="SA.fillCurrentLocation()">📍 Joriy joylashuvni olish</button>
-          <button class="submit-btn" onclick="SA.createBranch()">✅ Yaratish</button>
-        </div>`);
+        <div class="sec-hdr"><span class="sec-title">Yangi filial</span></div>
+        <div class="card card-full">
+          <div class="form-group">
+            <label class="form-label">Nomi</label>
+            <input class="form-input" id="nb-name" placeholder="Filial nomi"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Radius (metr)</label>
+            <input class="form-input" type="number" id="nb-r" value="100" min="10" max="2000"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kenglik (Latitude)</label>
+            <input class="form-input" type="number" id="nb-lat" step="0.00001" placeholder="41.29950"/>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Uzunlik (Longitude)</label>
+            <input class="form-input" type="number" id="nb-lon" step="0.00001" placeholder="69.24007"/>
+          </div>
+        </div>
+        <button class="btn-secondary" onclick="SA.fillCurrentLocation()">Joriy joylashuvni olish</button>
+        <button class="btn-primary" style="margin-top:8px" onclick="SA.createBranch()">Yaratish</button>`);
     });
   },
 
@@ -1134,62 +1378,73 @@ const SA = {
     navigator.geolocation.getCurrentPosition(pos => {
       document.getElementById("nb-lat").value = pos.coords.latitude.toFixed(6);
       document.getElementById("nb-lon").value = pos.coords.longitude.toFixed(6);
-      toast("📍 Joylashuv olindi");
-    }, () => toast("❌ GPS xatosi"));
+      hap.ok(); toast("Joylashuv olindi");
+    }, () => { hap.err(); toast("GPS xatosi"); });
   },
 
   async createBranch() {
+    hap.light();
     const name = document.getElementById("nb-name")?.value.trim();
     const r    = parseInt(document.getElementById("nb-r")?.value)||0;
     const lat  = parseFloat(document.getElementById("nb-lat")?.value)||0;
     const lon  = parseFloat(document.getElementById("nb-lon")?.value)||0;
-    if (!name||!r||!lat||!lon) { toast("⚠️ Barcha maydonlarni to'ldiring"); return; }
+    if (!name||!r||!lat||!lon) { hap.warn(); toast("Barcha maydonlarni to'ldiring"); return; }
     try {
       await api("/api/superadmin/branches",{method:"POST",body:{name,lat,lon,radius:r}});
-      hap.ok(); toast("✅ Filial yaratildi");
+      hap.ok(); toast("Filial yaratildi");
       popView(); S.lookups={};
-    } catch(e) { tg.showAlert(e.message); }
+    } catch(e) { hap.err(); tg.showAlert(e.message); }
   },
 
   editBranchForm(b) {
     pushView(async () => {
       setContent(`
-        <div class="card">
-          <div class="card-title">"${b.name}" — Tahrirlash</div>
-          <div class="form-group"><label class="form-label">Nomi</label>
-            <input class="form-input" id="eb-name" value="${b.name}"/></div>
-          <div class="form-group"><label class="form-label">Radius (metr)</label>
-            <input class="form-input" type="number" id="eb-r" value="${b.radius}"/></div>
-          <div class="form-group"><label class="form-label">Kenglik (Latitude)</label>
-            <input class="form-input" type="number" id="eb-lat" step="0.00001" value="${b.lat}"/></div>
-          <div class="form-group"><label class="form-label">Uzunlik (Longitude)</label>
-            <input class="form-input" type="number" id="eb-lon" step="0.00001" value="${b.lon}"/></div>
-          <button class="submit-btn" onclick="SA.saveBranch(${b.id})">💾 Saqlash</button>
-        </div>`);
+        <div class="sec-hdr"><span class="sec-title">${b.name} — Tahrirlash</span></div>
+        <div class="card card-full">
+          <div class="form-group">
+            <label class="form-label">Nomi</label>
+            <input class="form-input" id="eb-name" value="${b.name}"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Radius (metr)</label>
+            <input class="form-input" type="number" id="eb-r" value="${b.radius}"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kenglik (Latitude)</label>
+            <input class="form-input" type="number" id="eb-lat" step="0.00001" value="${b.lat}"/>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Uzunlik (Longitude)</label>
+            <input class="form-input" type="number" id="eb-lon" step="0.00001" value="${b.lon}"/>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="SA.saveBranch(${b.id})">Saqlash</button>`);
     });
   },
 
   async saveBranch(bid) {
+    hap.light();
     const name = document.getElementById("eb-name")?.value.trim();
     const r    = parseInt(document.getElementById("eb-r")?.value)||0;
     const lat  = parseFloat(document.getElementById("eb-lat")?.value)||0;
     const lon  = parseFloat(document.getElementById("eb-lon")?.value)||0;
-    if (!name||!r) { toast("⚠️ Barcha maydonlarni to'ldiring"); return; }
+    if (!name||!r) { hap.warn(); toast("Barcha maydonlarni to'ldiring"); return; }
     try {
       await api(`/api/superadmin/branches/${bid}`,{method:"PUT",body:{name,lat,lon,radius:r}});
-      hap.ok(); toast("✅ Saqlandi");
+      hap.ok(); toast("Saqlandi");
       popView(); popView(); S.lookups={};
-    } catch(e) { tg.showAlert(e.message); }
+    } catch(e) { hap.err(); tg.showAlert(e.message); }
   },
 
   async deleteBranch(bid, name) {
+    hap.med();
     tg.showConfirm(`"${name}" filialini o'chirishni tasdiqlaysizmi?`, async ok => {
       if (!ok) return;
       try {
         await api(`/api/superadmin/branches/${bid}`,{method:"DELETE"});
-        hap.ok(); toast("✅ Filial o'chirildi");
+        hap.ok(); toast("Filial o'chirildi");
         popView(); popView(); S.lookups={};
-      } catch(e) { tg.showAlert(e.message); }
+      } catch(e) { hap.err(); tg.showAlert(e.message); }
     });
   },
 
@@ -1200,73 +1455,84 @@ const SA = {
         <span class="sec-title">Lavozimlar</span>
         <div style="display:flex;gap:8px;align-items:center">
           <span class="sec-count">${positions.length} ta</span>
-          <span class="sec-add" onclick="SA.addPositionForm()">＋</span>
+          <span class="sec-add" onclick="SA.addPositionForm()">+</span>
         </div>
       </div>
       ${positions.length ? `<div class="card">${positions.map(p => `
         <div class="list-item">
-          <div class="li-info"><div class="li-name">💼 ${p.name}</div></div>
-          <div class="li-right" style="display:flex;gap:8px">
+          <div class="li-info"><div class="li-name">${p.name}</div></div>
+          <div class="li-right" style="gap:4px">
             <button onclick="SA.editPositionForm(${p.id},'${p.name}')"
-              style="background:none;border:none;color:var(--link);font-size:22px;cursor:pointer">✏️</button>
+              style="background:rgba(59,130,246,.1);border:none;color:var(--blue);
+              border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer">
+              Tahrirla</button>
             <button onclick="SA.deletePosition(${p.id},'${p.name}')"
-              style="background:none;border:none;color:var(--red);font-size:22px;cursor:pointer">🗑</button>
+              style="background:rgba(239,68,68,.1);border:none;color:var(--red);
+              border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer">
+              O'chir</button>
           </div>
-        </div>`).join("")}</div>` : empty("💼","Lavozimlar yo'q")}`);
+        </div>`).join("")}</div>` : emptyState("L","Lavozimlar yo'q")}`);
   },
 
   addPositionForm() {
     pushView(async () => {
       setContent(`
-        <div class="card">
-          <div class="card-title">Yangi lavozim</div>
-          <div class="form-group"><label class="form-label">Lavozim nomi</label>
-            <input class="form-input" id="np-name" placeholder="Masalan: Kassir"/></div>
-          <button class="submit-btn" onclick="SA.createPosition()">✅ Yaratish</button>
-        </div>`);
+        <div class="sec-hdr"><span class="sec-title">Yangi lavozim</span></div>
+        <div class="card card-full">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Lavozim nomi</label>
+            <input class="form-input" id="np-name" placeholder="Masalan: Kassir"/>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="SA.createPosition()">Yaratish</button>`);
     });
   },
 
   async createPosition() {
+    hap.light();
     const name = document.getElementById("np-name")?.value.trim();
-    if (!name) { toast("⚠️ Nomi kiriting"); return; }
+    if (!name) { hap.warn(); toast("Nomi kiriting"); return; }
     try {
       await api("/api/superadmin/positions",{method:"POST",body:{name}});
-      hap.ok(); toast("✅ Lavozim yaratildi");
+      hap.ok(); toast("Lavozim yaratildi");
       popView(); S.lookups={};
-    } catch(e) { tg.showAlert(e.message); }
+    } catch(e) { hap.err(); tg.showAlert(e.message); }
   },
 
   editPositionForm(pid, pname) {
     pushView(async () => {
       setContent(`
-        <div class="card">
-          <div class="card-title">Lavozimni tahrirlash</div>
-          <div class="form-group"><label class="form-label">Lavozim nomi</label>
-            <input class="form-input" id="ep-name" value="${pname}"/></div>
-          <button class="submit-btn" onclick="SA.savePosition(${pid})">💾 Saqlash</button>
-        </div>`);
+        <div class="sec-hdr"><span class="sec-title">Lavozimni tahrirlash</span></div>
+        <div class="card card-full">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Lavozim nomi</label>
+            <input class="form-input" id="ep-name" value="${pname}"/>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="SA.savePosition(${pid})">Saqlash</button>`);
     });
   },
 
   async savePosition(pid) {
+    hap.light();
     const name = document.getElementById("ep-name")?.value.trim();
-    if (!name) { toast("⚠️ Nomi kiriting"); return; }
+    if (!name) { hap.warn(); toast("Nomi kiriting"); return; }
     try {
       await api(`/api/superadmin/positions/${pid}`,{method:"PUT",body:{name}});
-      hap.ok(); toast("✅ Saqlandi");
+      hap.ok(); toast("Saqlandi");
       popView(); S.lookups={};
-    } catch(e) { tg.showAlert(e.message); }
+    } catch(e) { hap.err(); tg.showAlert(e.message); }
   },
 
   async deletePosition(pid, name) {
+    hap.med();
     tg.showConfirm(`"${name}" lavozimini o'chirishni tasdiqlaysizmi?`, async ok => {
       if (!ok) return;
       try {
         await api(`/api/superadmin/positions/${pid}`,{method:"DELETE"});
-        hap.ok(); toast("✅ O'chirildi");
+        hap.ok(); toast("O'chirildi");
         await SA.renderPositions(); S.lookups={};
-      } catch(e) { tg.showAlert(e.message); }
+      } catch(e) { hap.err(); tg.showAlert(e.message); }
     });
   },
 
@@ -1277,83 +1543,98 @@ const SA = {
         <span class="sec-title">Ish jadvallari</span>
         <div style="display:flex;gap:8px;align-items:center">
           <span class="sec-count">${scs.length} ta</span>
-          <span class="sec-add" onclick="SA.addScheduleForm()">＋</span>
+          <span class="sec-add" onclick="SA.addScheduleForm()">+</span>
         </div>
       </div>
       ${scs.length ? `<div class="card">${scs.map(sc => `
         <div class="list-item">
           <div class="li-info">
-            <div class="li-name">⏰ ${sc.name}</div>
+            <div class="li-name">${sc.name}</div>
             <div class="li-sub">${sc.start_time}–${sc.end_time}
               ${sc.lunch_start?`· Tushlik: ${sc.lunch_start}–${sc.lunch_end}`:""}
               · Kech: >${sc.late_threshold}d</div>
           </div>
           <div class="li-right">
             <button onclick="SA.deleteSchedule(${sc.id},'${sc.name}')"
-              style="background:none;border:none;color:var(--red);font-size:22px;cursor:pointer">🗑</button>
+              style="background:rgba(239,68,68,.1);border:none;color:var(--red);
+              border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer">
+              O'chir</button>
           </div>
-        </div>`).join("")}</div>` : empty("⏰","Jadvallar yo'q")}`);
+        </div>`).join("")}</div>` : emptyState("J","Jadvallar yo'q")}`);
   },
 
   addScheduleForm() {
     pushView(async () => {
       setContent(`
-        <div class="card">
-          <div class="card-title">Yangi jadval</div>
-          <div class="form-group"><label class="form-label">Jadval nomi</label>
-            <input class="form-input" id="ns-name" placeholder="Masalan: Standart 9-18"/></div>
-          <div class="form-group"><label class="form-label">Ish boshlanishi</label>
-            <input class="form-input" type="time" id="ns-st" value="09:00"/></div>
-          <div class="form-group"><label class="form-label">Ish tugashi</label>
-            <input class="form-input" type="time" id="ns-et" value="18:00"/></div>
-          <div class="form-group"><label class="form-label">Tushlik boshlanishi (ixtiyoriy)</label>
-            <input class="form-input" type="time" id="ns-ls" value="13:00"/></div>
-          <div class="form-group"><label class="form-label">Tushlik tugashi (ixtiyoriy)</label>
-            <input class="form-input" type="time" id="ns-le" value="14:00"/></div>
-          <div class="form-group"><label class="form-label">Kech kelish chegarasi (daqiqa)</label>
-            <input class="form-input" type="number" id="ns-lt" value="15" min="0" max="120"/></div>
-          <button class="submit-btn" onclick="SA.createSchedule()">✅ Yaratish</button>
-        </div>`);
+        <div class="sec-hdr"><span class="sec-title">Yangi jadval</span></div>
+        <div class="card card-full">
+          <div class="form-group">
+            <label class="form-label">Jadval nomi</label>
+            <input class="form-input" id="ns-name" placeholder="Masalan: Standart 9-18"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ish boshlanishi</label>
+            <input class="form-input" type="time" id="ns-st" value="09:00"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ish tugashi</label>
+            <input class="form-input" type="time" id="ns-et" value="18:00"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tushlik boshlanishi (ixtiyoriy)</label>
+            <input class="form-input" type="time" id="ns-ls" value="13:00"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tushlik tugashi (ixtiyoriy)</label>
+            <input class="form-input" type="time" id="ns-le" value="14:00"/>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Kech kelish chegarasi (daqiqa)</label>
+            <input class="form-input" type="number" id="ns-lt" value="15" min="0" max="120"/>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="SA.createSchedule()">Yaratish</button>`);
     });
   },
 
   async createSchedule() {
+    hap.light();
     const name = document.getElementById("ns-name")?.value.trim();
     const st   = document.getElementById("ns-st")?.value;
     const et   = document.getElementById("ns-et")?.value;
     const ls   = document.getElementById("ns-ls")?.value||null;
     const le   = document.getElementById("ns-le")?.value||null;
     const lt   = parseInt(document.getElementById("ns-lt")?.value)||15;
-    if (!name||!st||!et) { toast("⚠️ Asosiy maydonlarni to'ldiring"); return; }
+    if (!name||!st||!et) { hap.warn(); toast("Asosiy maydonlarni to'ldiring"); return; }
     try {
       await api("/api/superadmin/schedules",{method:"POST",body:{
         name, start_time:st, end_time:et,
         lunch_start:ls||null, lunch_end:le||null, late_threshold:lt}});
-      hap.ok(); toast("✅ Jadval yaratildi");
+      hap.ok(); toast("Jadval yaratildi");
       popView(); S.lookups={};
-    } catch(e) { tg.showAlert(e.message); }
+    } catch(e) { hap.err(); tg.showAlert(e.message); }
   },
 
   async deleteSchedule(sid, name) {
+    hap.med();
     tg.showConfirm(`"${name}" jadvalini o'chirishni tasdiqlaysizmi?`, async ok => {
       if (!ok) return;
       try {
         await api(`/api/superadmin/schedules/${sid}`,{method:"DELETE"});
-        hap.ok(); toast("✅ O'chirildi");
+        hap.ok(); toast("O'chirildi");
         await SA.renderSchedules(); S.lookups={};
-      } catch(e) { tg.showAlert(e.message); }
+      } catch(e) { hap.err(); tg.showAlert(e.message); }
     });
   },
 
   async renderAdmins() {
     const admins = await api("/api/superadmin/admins");
-    const branches = await getLookup("branches");
     setContent(`
       <div class="sec-hdr">
         <span class="sec-title">Adminlar</span>
         <div style="display:flex;gap:8px;align-items:center">
           <span class="sec-count">${admins.length} ta</span>
-          <span class="sec-add" onclick="SA.addAdminForm()">＋</span>
+          <span class="sec-add" onclick="SA.addAdminForm()">+</span>
         </div>
       </div>
       ${admins.length ? `<div class="card">${admins.map(a => `
@@ -1361,114 +1642,125 @@ const SA = {
           <div class="li-av">${initials(a.full_name)}</div>
           <div class="li-info">
             <div class="li-name">${a.full_name}</div>
-            <div class="li-sub">${a.branch?.name||"Filial yo'q"}
-              · ${a.telegram_id?"Faol ✅":"Kutilmoqda ⏳"}</div>
+            <div class="li-sub">${a.branch?.name||"Filial yo'q"} · ${a.telegram_id?"Faol":"Kutilmoqda"}</div>
           </div>
           <div class="li-right">
+            <span class="sdot ${a.telegram_id?"green":"orange"}"></span>
             <button onclick="SA.removeAdmin(${a.id},'${a.full_name}')"
-              style="background:none;border:none;color:var(--red);font-size:20px;cursor:pointer">🗑</button>
+              style="background:rgba(239,68,68,.1);border:none;color:var(--red);
+              border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer">
+              O'chir</button>
           </div>
-        </div>`).join("")}</div>` : empty("👔","Adminlar yo'q")}`);
+        </div>`).join("")}</div>` : emptyState("A","Adminlar yo'q")}`);
   },
 
   addAdminForm() {
     pushView(async () => {
       const branches = await getLookup("branches");
       setContent(`
-        <div class="card">
-          <div class="card-title">Yangi admin</div>
-          <div class="form-group"><label class="form-label">To'liq ism</label>
-            <input class="form-input" id="na-name" placeholder="Ism Familiya"/></div>
-          <div class="form-group"><label class="form-label">Filial</label>
+        <div class="sec-hdr"><span class="sec-title">Yangi admin</span></div>
+        <div class="card card-full">
+          <div class="form-group">
+            <label class="form-label">To'liq ism</label>
+            <input class="form-input" id="na-name" placeholder="Ism Familiya"/>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Filial (ixtiyoriy)</label>
             <select class="form-input" id="na-br">
-              <option value="">— Tanlang (ixtiyoriy) —</option>
+              <option value="">— Tanlang —</option>
               ${branches.map(b=>`<option value="${b.id}">${b.name}</option>`).join("")}
             </select>
           </div>
-          <button class="submit-btn" onclick="SA.createAdmin()">✅ Yaratish</button>
-          <div class="form-hint" style="margin-top:8px">
-            Yaratilgandan keyin taklif havolasi ko'rsatiladi
-          </div>
+        </div>
+        <button class="btn-primary" onclick="SA.createAdmin()">Yaratish</button>
+        <div class="info-box" style="margin-top:10px">
+          <p>Yaratilgandan keyin taklif havolasi ko'rsatiladi</p>
         </div>`);
     });
   },
 
   async createAdmin() {
+    hap.light();
     const name = document.getElementById("na-name")?.value.trim();
     const br   = parseInt(document.getElementById("na-br")?.value)||null;
-    if (!name) { toast("⚠️ Ism kiriting"); return; }
+    if (!name) { hap.warn(); toast("Ism kiriting"); return; }
     try {
-      const data = await api("/api/superadmin/admins",{method:"POST",body:{
-        full_name:name, branch_id:br}});
+      const data = await api("/api/superadmin/admins",{method:"POST",body:{full_name:name,branch_id:br}});
       hap.ok();
       setContent(`
-        <div class="card" style="text-align:center;padding:20px">
-          <div style="font-size:48px;margin-bottom:12px">✅</div>
-          <div style="font-size:17px;font-weight:700;margin-bottom:6px">Admin yaratildi</div>
+        <div class="card" style="text-align:center;padding:28px 16px">
+          <div style="font-size:17px;font-weight:800;margin-bottom:6px">Admin yaratildi</div>
+          <div style="font-size:14px;color:var(--hint)">Quyidagi havolani adminga yuboring</div>
         </div>
+        <div class="sec-hdr"><span class="sec-title">Taklif havolasi</span></div>
         <div class="invite-box">
-          <div style="font-size:12px;font-weight:600;color:var(--hint);margin-bottom:6px">
-            Taklif havolasi (24 soat amal qiladi)</div>
+          <div style="font-size:11px;font-weight:700;color:var(--hint);text-transform:uppercase;
+            letter-spacing:.5px;margin-bottom:8px">24 soat amal qiladi</div>
           <div class="invite-link">${data.invite_link}</div>
           <button class="copy-btn" onclick="navigator.clipboard?.writeText('${data.invite_link}')
-            .then(()=>toast('📋 Nusxa olindi'))">📋 Nusxa olish</button>
-        </div>
-        <button class="submit-btn" style="margin-top:10px" onclick="popView()">← Orqaga</button>`);
-    } catch(e) { tg.showAlert(e.message); }
+            .then(()=>{hap.ok();toast('Nusxa olindi')})">Nusxa olish</button>
+        </div>`);
+    } catch(e) { hap.err(); tg.showAlert(e.message); }
   },
 
   async removeAdmin(aid, name) {
+    hap.med();
     tg.showConfirm(`"${name}" adminni o'chirishni tasdiqlaysizmi?`, async ok => {
       if (!ok) return;
       try {
         await api(`/api/superadmin/admins/${aid}`,{method:"DELETE"});
-        hap.ok(); toast("✅ O'chirildi");
+        hap.ok(); toast("O'chirildi");
         await SA.renderAdmins();
-      } catch(e) { tg.showAlert(e.message); }
+      } catch(e) { hap.err(); tg.showAlert(e.message); }
     });
   },
 
   async renderSettings() {
     const s = await api("/api/superadmin/settings");
     setContent(`
-      <div class="card">
-        <div class="card-title">Bildirishnoma vaqtlari</div>
-        <div class="form-group"><label class="form-label">⏰ Kelish eslatmasi</label>
-          <input class="form-input" type="time" id="st-cr" value="${s.checkin_reminder_time}"/></div>
-        <div class="form-group"><label class="form-label">🕐 Kech kelish tekshiruvi</label>
-          <input class="form-input" type="time" id="st-lc" value="${s.late_check_time}"/></div>
-        <div class="form-group"><label class="form-label">❌ Kelmadi tekshiruvi</label>
-          <input class="form-input" type="time" id="st-ac" value="${s.absent_check_time}"/></div>
-        <div class="form-group"><label class="form-label">📊 Avto-hisobot vaqti</label>
-          <input class="form-input" type="time" id="st-ar" value="${s.auto_report_time}"/></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Qo'shimcha sozlamalar</div>
-        <div class="card-row">
-          <span class="card-label">📅 Haftalik avto-hisobot</span>
-          <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer">
-            <input type="checkbox" id="st-wr" ${s.auto_weekly_report?"checked":""}
-              style="opacity:0;width:0;height:0"/>
-            <span onclick="this.previousElementSibling.checked=!this.previousElementSibling.checked"
-              style="position:absolute;inset:0;background:${s.auto_weekly_report?"var(--accent)":"rgba(255,255,255,.15)"};
-              border-radius:24px;transition:background .2s"></span>
-          </label>
+      <div class="sec-hdr"><span class="sec-title">Bildirishnoma vaqtlari</span></div>
+      <div class="card card-full">
+        <div class="form-group">
+          <label class="form-label">Kelish eslatmasi</label>
+          <input class="form-input" type="time" id="st-cr" value="${s.checkin_reminder_time}"/>
         </div>
-        <div class="card-row">
-          <span class="card-label">🔔 Bildirishnomalar</span>
-          <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer">
-            <input type="checkbox" id="st-ne" ${s.notifications_enabled?"checked":""}
-              style="opacity:0;width:0;height:0"/>
-            <span onclick="this.previousElementSibling.checked=!this.previousElementSibling.checked"
-              style="position:absolute;inset:0;background:${s.notifications_enabled?"var(--accent)":"rgba(255,255,255,.15)"};
-              border-radius:24px;transition:background .2s"></span>
-          </label>
+        <div class="form-group">
+          <label class="form-label">Kech kelish tekshiruvi</label>
+          <input class="form-input" type="time" id="st-lc" value="${s.late_check_time}"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Kelmadi tekshiruvi</label>
+          <input class="form-input" type="time" id="st-ac" value="${s.absent_check_time}"/>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Avto-hisobot vaqti</label>
+          <input class="form-input" type="time" id="st-ar" value="${s.auto_report_time}"/>
         </div>
       </div>
-      <button class="submit-btn" onclick="SA.saveSettings()">💾 Saqlash</button>`);
+      <div class="sec-hdr" style="margin-top:4px"><span class="sec-title">Qo'shimcha</span></div>
+      <div class="card">
+        <div class="toggle-wrap">
+          <span class="toggle-label">Haftalik avto-hisobot</span>
+          <label class="toggle">
+            <input type="checkbox" id="st-wr" ${s.auto_weekly_report?"checked":""}>
+            <span class="toggle-track"></span>
+            <span class="toggle-thumb"></span>
+          </label>
+        </div>
+        <div class="toggle-wrap">
+          <span class="toggle-label">Bildirishnomalar</span>
+          <label class="toggle">
+            <input type="checkbox" id="st-ne" ${s.notifications_enabled?"checked":""}>
+            <span class="toggle-track"></span>
+            <span class="toggle-thumb"></span>
+          </label>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="SA.saveSettings()">Saqlash</button>`);
   },
 
   async saveSettings() {
+    hap.light();
     const body = {
       checkin_reminder_time: document.getElementById("st-cr")?.value||null,
       late_check_time:       document.getElementById("st-lc")?.value||null,
@@ -1479,21 +1771,19 @@ const SA = {
     };
     try {
       await api("/api/superadmin/settings",{method:"PUT",body});
-      hap.ok(); toast("✅ Saqlandi");
-    } catch(e) { tg.showAlert(e.message); }
+      hap.ok(); toast("Saqlandi");
+    } catch(e) { hap.err(); tg.showAlert(e.message); }
   },
 };
-
 
 // ════════════════════════════════════════════════════════════════════════════
 //  BOOT
 // ════════════════════════════════════════════════════════════════════════════
 async function boot() {
-  if (!tg.initData || API.includes("YOUR_VPS_HTTPS_URL")) {
+  if (!tg.initData) {
     setContent(`
-      <div class="card" style="text-align:center;padding:32px 20px">
-        <div style="font-size:52px;margin-bottom:12px">🔧</div>
-        <div style="font-size:18px;font-weight:700;margin-bottom:10px">Sozlanmagan</div>
+      <div class="card card-full" style="text-align:center;padding:40px 20px">
+        <div style="font-size:18px;font-weight:800;margin-bottom:10px">Sozlanmagan</div>
         <div style="color:var(--hint);font-size:14px;line-height:1.6">
           Mini App faqat Telegram orqali ochilganda ishlaydi.
         </div>
@@ -1507,26 +1797,26 @@ async function boot() {
     S.me = await api("/api/me");
   } catch(e) {
     setContent(`
-      <div class="empty">
-        <div class="empty-ico">🔐</div>
-        <div class="empty-txt">${e.message}<br><br>
-          Botni /start bilan qayta ishga tushiring.</div>
+      <div class="card card-full" style="text-align:center;padding:40px 20px">
+        <div style="font-size:16px;font-weight:700;margin-bottom:8px">Kirish xatosi</div>
+        <div style="color:var(--hint);font-size:14px;line-height:1.6">
+          ${e.message}<br><br>Botni /start bilan qayta ishga tushiring.
+        </div>
       </div>`);
     return;
   }
 
   const u = S.me;
-  document.getElementById("h-av").textContent    = initials(u.full_name);
-  document.getElementById("h-name").textContent  = u.full_name;
-  const subMap = {
+  document.getElementById("h-av").textContent   = initials(u.full_name);
+  document.getElementById("h-name").textContent = u.full_name;
+  document.getElementById("h-sub").textContent  = {
     worker:     u.branch?.name || "Ishchi",
-    admin:      "Admin · " + (u.branch?.name||""),
+    admin:      "Admin" + (u.branch?.name ? " · "+u.branch.name : ""),
     superadmin: "Superadmin",
-  };
-  document.getElementById("h-sub").textContent   = subMap[u.role] || u.role;
+  }[u.role] || u.role;
   const badge = document.getElementById("h-badge");
-  badge.textContent = {worker:"Ishchi",admin:"Admin",superadmin:"Superadmin"}[u.role]||u.role;
-  badge.className   = "badge " + u.role;
+  badge.textContent = {worker:"Ishchi",admin:"Admin",superadmin:"Super"}[u.role]||u.role;
+  badge.className   = "role-tag " + u.role;
 
   buildNav(u.role);
 }
