@@ -335,9 +335,28 @@ textarea.form-input{resize:none;line-height:1.5}
 .copy-btn{
   background:rgba(34,197,94,.12);color:var(--green);
   border:none;border-radius:var(--r-xs);
-  padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;
+  padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;
+  flex:1;text-align:center;
 }
 .copy-btn:active{opacity:.7}
+.share-btn{
+  flex:1;text-align:center;
+  background:rgba(59,130,246,.12);color:var(--blue);
+  border:none;border-radius:var(--r-xs);
+  padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;
+}
+.share-btn:active{opacity:.7}
+.invite-code{
+  font-family:'SF Mono','Menlo','Courier New',monospace;
+  font-size:32px;font-weight:800;letter-spacing:6px;
+  color:var(--green);text-align:center;
+  padding:18px 12px;
+  background:rgba(34,197,94,.06);
+  border:1.5px dashed rgba(34,197,94,.28);
+  border-radius:var(--r-sm);margin-bottom:12px;
+  user-select:all;
+}
+.invite-actions{display:flex;gap:8px;}
 
 /* ── Branch Card ── */
 .branch-card{
@@ -453,7 +472,7 @@ textarea.form-input{resize:none;line-height:1.5}
 <div id="toast"></div>
 
 <script>
-const API = window.HRBOT_API_URL || "https://def-mixer-pond-personnel.trycloudflare.com";
+const API = window.HRBOT_API_URL || "https://month-merchants-southwest-data.trycloudflare.com";
 const BOT_USERNAME = "hr_boshqaruv_bot";
 
 const tg = window.Telegram.WebApp;
@@ -570,6 +589,37 @@ function emptyState(letter, title, sub="") {
     <div style="font-size:16px;font-weight:700;margin-bottom:6px">${title}</div>
     ${sub?`<div class="empty-txt">${sub}</div>`:""}
   </div>`;
+}
+
+function extractCode(link) {
+  const m = link.match(/invite_(.+)$/);
+  return m ? m[1] : link;
+}
+
+function inviteBox(link) {
+  const code = extractCode(link);
+  return `<div class="invite-box">
+    <div style="font-size:11px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Tasdiqlash kodi · 24 soat amal qiladi</div>
+    <div class="invite-code" onclick="copyInviteCode('${code}','${link}')">${code}</div>
+    <div class="invite-actions">
+      <button class="copy-btn" onclick="copyInviteCode('${code}','${link}')">Nusxa olish</button>
+      <button class="share-btn" onclick="shareInvite('${link}','${code}')">Yuborish</button>
+    </div>
+  </div>`;
+}
+
+function copyInviteCode(code, link) {
+  hap.ok();
+  navigator.clipboard?.writeText(code)
+    .then(() => toast("Kod nusxa olindi"))
+    .catch(() => navigator.clipboard?.writeText(link).then(() => toast("Havola nusxa olindi")));
+}
+
+function shareInvite(link, code) {
+  hap.light();
+  const text = encodeURIComponent("Botga ulanish uchun tasdiqlash kodingiz: " + code);
+  const url  = encodeURIComponent(link);
+  tg.openLink("https://t.me/share/url?url=" + url + "&text=" + text);
 }
 
 // ── Navigation ───────────────────────────────────────────────────────────────
@@ -992,19 +1042,18 @@ const Admin = {
           <span class="row-value">${w.telegram_id?"Bog'langan":"Bog'lanmagan"}</span></div>
       </div>
       ${w.invite_code ? `
-        <div class="sec-hdr"><span class="sec-title">Taklif havolasi</span></div>
-        <div class="invite-box">
-          <div class="invite-link">https://t.me/${BOT_USERNAME}?start=invite_${w.invite_code}</div>
-          <button class="copy-btn" onclick="Admin.copyInvite('${w.invite_code}')">Nusxa olish</button>
-        </div>` : ""}
-      <button class="btn-secondary" onclick="Admin.regenInvite(${w.id})">Yangi taklif kodi</button>
+        <div class="sec-hdr"><span class="sec-title">Tasdiqlash kodi</span></div>
+        ${inviteBox("https://t.me/"+BOT_USERNAME+"?start=invite_"+w.invite_code)}` : ""}
+      <button class="btn-secondary" onclick="Admin.regenInvite(${w.id})">Yangi tasdiqlash kodi</button>
       <button class="btn-danger" onclick="Admin.removeWorker(${w.id},'${w.full_name}')">Ishchini o'chirish</button>`);
   },
 
   copyInvite(code) {
-    const link = `https://t.me/${BOT_USERNAME}?start=invite_${code}`;
-    navigator.clipboard?.writeText(link).then(() => { hap.ok(); toast("Nusxa olindi"); })
-      .catch(() => toast("Link: "+link));
+    hap.ok(); toast("Kod nusxa olindi");
+    navigator.clipboard?.writeText(code).catch(() => {
+      const link = `https://t.me/${BOT_USERNAME}?start=invite_${code}`;
+      navigator.clipboard?.writeText(link);
+    });
   },
 
   async regenInvite(wid) {
@@ -1082,16 +1131,10 @@ const Admin = {
       setContent(`
         <div class="card" style="text-align:center;padding:28px 16px">
           <div style="font-size:17px;font-weight:800;margin-bottom:6px">Ishchi yaratildi</div>
-          <div style="font-size:14px;color:var(--hint)">Quyidagi havolani ishchiga yuboring</div>
+          <div style="font-size:14px;color:var(--hint)">Kodni ishchiga yuboring</div>
         </div>
-        <div class="sec-hdr"><span class="sec-title">Taklif havolasi</span></div>
-        <div class="invite-box">
-          <div style="font-size:11px;font-weight:700;color:var(--hint);text-transform:uppercase;
-            letter-spacing:.5px;margin-bottom:8px">24 soat amal qiladi</div>
-          <div class="invite-link">${data.invite_link}</div>
-          <button class="copy-btn" onclick="navigator.clipboard?.writeText('${data.invite_link}')
-            .then(()=>{hap.ok();toast('Nusxa olindi')})">Nusxa olish</button>
-        </div>`);
+        <div class="sec-hdr"><span class="sec-title">Tasdiqlash kodi</span></div>
+        ${inviteBox(data.invite_link)}`);
       S.lookups={};
     } catch(e) { hap.err(); tg.showAlert(e.message); }
   },
@@ -1718,16 +1761,10 @@ const SA = {
       setContent(`
         <div class="card" style="text-align:center;padding:28px 16px">
           <div style="font-size:17px;font-weight:800;margin-bottom:6px">Admin yaratildi</div>
-          <div style="font-size:14px;color:var(--hint)">Quyidagi havolani adminga yuboring</div>
+          <div style="font-size:14px;color:var(--hint)">Kodni adminga yuboring</div>
         </div>
-        <div class="sec-hdr"><span class="sec-title">Taklif havolasi</span></div>
-        <div class="invite-box">
-          <div style="font-size:11px;font-weight:700;color:var(--hint);text-transform:uppercase;
-            letter-spacing:.5px;margin-bottom:8px">24 soat amal qiladi</div>
-          <div class="invite-link">${data.invite_link}</div>
-          <button class="copy-btn" onclick="navigator.clipboard?.writeText('${data.invite_link}')
-            .then(()=>{hap.ok();toast('Nusxa olindi')})">Nusxa olish</button>
-        </div>`);
+        <div class="sec-hdr"><span class="sec-title">Tasdiqlash kodi</span></div>
+        ${inviteBox(data.invite_link)}`);
     } catch(e) { hap.err(); tg.showAlert(e.message); }
   },
 
