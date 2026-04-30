@@ -473,7 +473,7 @@ textarea.form-input{resize:none;line-height:1.5}
 <div id="toast"></div>
 
 <script>
-const API = window.HRBOT_API_URL || "https://countries-elephant-diesel-kinase.trycloudflare.com";
+const API = window.HRBOT_API_URL || "https://usc-llp-tower-producers.trycloudflare.com";
 const BOT_USERNAME = "hr_boshqaruv_bot";
 
 const tg = window.Telegram.WebApp;
@@ -1062,6 +1062,7 @@ const Admin = {
         <span class="sec-add" onclick="Admin.kpiForm(${w.id})">+</span>
       </div>
       <div class="card">${kpiRows}</div>
+      <button class="btn-primary" onclick="Admin.editWorkerForm(${w.id})">Tahrirlash</button>
       <button class="btn-secondary" onclick="Admin.regenInvite(${w.id})">Yangi tasdiqlash kodi</button>
       <button class="btn-danger" onclick="Admin.removeWorker(${w.id},'${w.full_name}')">Ishchini o'chirish</button>`);
   },
@@ -1115,6 +1116,102 @@ const Admin = {
       await api(`/api/admin/workers/${wid}/kpi`,{method:"POST",body:{year:yr,month:mo,amount:amt,note}});
       hap.ok(); toast("KPI saqlandi");
       popView();
+    } catch(e) { hap.err(); tg.showAlert(e.message); }
+  },
+
+  editWorkerForm(wid) {
+    pushView(async () => {
+      const [w, positions, schedules] = await Promise.all([
+        api(`/api/admin/workers/${wid}`),
+        getLookup("positions"),
+        getLookup("schedules"),
+      ]);
+      const isCustom = !w.schedule && (w.custom_days||[]).length > 0;
+      const existingDays = {};
+      (w.custom_days||[]).forEach(d => existingDays[d.day_of_week] = d);
+      const dayNames = ["Dushanba","Seshanba","Chorshanba","Payshanba","Juma","Shanba","Yakshanba"];
+      const customDays = dayNames.map((name,i) => {
+        const ex = existingDays[i];
+        const st  = ex?.start_time || (i<5?"09:00":"09:00");
+        const et  = ex?.end_time   || (i<5?"18:00":"18:00");
+        const wd  = ex ? ex.is_work_day : i<5;
+        return `<div style="margin-bottom:10px">
+          <div style="font-size:12px;color:var(--hint);font-weight:600;margin-bottom:6px">${name}</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="time" class="form-input" id="ec-${i}-st" value="${st}" style="flex:1"/>
+            <span style="color:var(--hint)">–</span>
+            <input type="time" class="form-input" id="ec-${i}-et" value="${et}" style="flex:1"/>
+            <label style="display:flex;align-items:center;gap:4px;flex-shrink:0;font-size:12px;cursor:pointer">
+              <input type="checkbox" id="ec-${i}-wd" ${wd?"checked":""} style="width:16px;height:16px">Ish</label>
+          </div>
+        </div>`;
+      }).join("");
+
+      setContent(`
+        <div class="sec-hdr"><span class="sec-title">${w.full_name} — Tahrirlash</span></div>
+        <div class="card card-full">
+          <div class="form-group">
+            <label class="form-label">To'liq ism</label>
+            <input class="form-input" id="ew-name" value="${w.full_name}"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Lavozim</label>
+            <select class="form-input" id="ew-pos">
+              <option value="">— Tanlang —</option>
+              ${positions.map(p=>`<option value="${p.id}"${p.id===w.position?.id?" selected":""}>${p.name}</option>`).join("")}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Oylik maosh (so'm)</label>
+            <input class="form-input" type="number" id="ew-sal" value="${w.salary||""}" placeholder="Masalan: 3000000" min="0"/>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Ish jadvali</label>
+            <select class="form-input" id="ew-sc" onchange="Admin._toggleEditCustomDays(this.value)">
+              <option value="">— Tanlang —</option>
+              ${schedules.map(s=>`<option value="${s.id}"${s.id===w.schedule?.id?" selected":""}>${s.name} (${s.start_time}–${s.end_time})</option>`).join("")}
+              <option value="custom"${isCustom?" selected":""}>⚙️ Custom jadval (har kun alohida)</option>
+            </select>
+          </div>
+        </div>
+        <div id="edit-custom-days-wrap" style="display:${isCustom?"block":"none"}">
+          <div class="sec-hdr"><span class="sec-title">Kunlik jadval</span></div>
+          <div class="card card-full">${customDays}</div>
+        </div>
+        <button class="btn-primary" onclick="Admin.saveWorkerEdit(${wid})">Saqlash</button>`);
+    }, {wid});
+  },
+
+  _toggleEditCustomDays(val) {
+    document.getElementById("edit-custom-days-wrap").style.display = val==="custom" ? "block" : "none";
+  },
+
+  async saveWorkerEdit(wid) {
+    hap.light();
+    const name  = document.getElementById("ew-name")?.value.trim();
+    const pos   = parseInt(document.getElementById("ew-pos")?.value)||null;
+    const scVal = document.getElementById("ew-sc")?.value;
+    const sc    = scVal==="custom" ? null : (parseInt(scVal)||null);
+    const sal   = parseInt(document.getElementById("ew-sal")?.value)||null;
+    if (!name) { hap.warn(); toast("Ism kiriting"); return; }
+    try {
+      await api(`/api/admin/workers/${wid}`,{method:"PUT",body:{
+        full_name:name, position_id:pos, schedule_id:sc, salary:sal}});
+      if (scVal==="custom") {
+        const days=[];
+        for(let i=0;i<7;i++) days.push({
+          day_of_week:i,
+          start_time:document.getElementById(`ec-${i}-st`)?.value||"09:00",
+          end_time:document.getElementById(`ec-${i}-et`)?.value||"18:00",
+          is_work_day:document.getElementById(`ec-${i}-wd`)?.checked??true,
+        });
+        await api(`/api/admin/workers/${wid}/custom_schedule`,{method:"POST",body:{days}});
+      } else if (sc) {
+        await api(`/api/admin/workers/${wid}/custom_schedule`,{method:"DELETE"});
+      }
+      hap.ok(); toast("Saqlandi");
+      popView();
+      S.stack[S.stack.length-1]?.renderFn({wid});
     } catch(e) { hap.err(); tg.showAlert(e.message); }
   },
 
