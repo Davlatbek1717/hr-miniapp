@@ -473,7 +473,7 @@ textarea.form-input{resize:none;line-height:1.5}
 <div id="toast"></div>
 
 <script>
-const API = window.HRBOT_API_URL || "https://disclaimer-und-slowly-joins.trycloudflare.com";
+const API = window.HRBOT_API_URL || "https://countries-elephant-diesel-kinase.trycloudflare.com";
 const BOT_USERNAME = "hr_boshqaruv_bot";
 
 const tg = window.Telegram.WebApp;
@@ -632,11 +632,13 @@ const TABS = {
     {id:"profile",   lbl:"Profil",   ico:"user"},
   ],
   admin:      [
-    {id:"monitoring",lbl:"Bugun",    ico:"eye"},
-    {id:"workers-a", lbl:"Xodimlar", ico:"team"},
-    {id:"leaves-a",  lbl:"Ta'tillar",ico:"leave"},
-    {id:"report",    lbl:"Hisobot",  ico:"chart"},
-    {id:"att-edit",  lbl:"Davomat",  ico:"edit"},
+    {id:"monitoring",  lbl:"Bugun",    ico:"eye"},
+    {id:"workers-a",   lbl:"Xodimlar", ico:"team"},
+    {id:"leaves-a",    lbl:"Ta'tillar",ico:"leave"},
+    {id:"report",      lbl:"Hisobot",  ico:"chart"},
+    {id:"att-edit",    lbl:"Davomat",  ico:"edit"},
+    {id:"positions-a", lbl:"Lavozim",  ico:"user"},
+    {id:"schedules-a", lbl:"Jadval",   ico:"clock"},
   ],
   superadmin: [
     {id:"dashboard", lbl:"Asosiy",   ico:"grid"},
@@ -710,8 +712,10 @@ async function renderTab(id) {
       case "workers-a":  await Admin.renderWorkers();    break;
       case "leaves-a":   await Admin.renderLeaves();     break;
       case "report":          Admin.renderReport();      break;
-      case "att-edit":   await Admin.renderAttEdit();    break;
-      case "dashboard":  await SA.renderDashboard();     break;
+      case "att-edit":    await Admin.renderAttEdit();  break;
+      case "positions-a": await SA.renderPositions();   break;
+      case "schedules-a": await SA.renderSchedules();   break;
+      case "dashboard":   await SA.renderDashboard();   break;
       case "workers-sa": await SA.renderWorkers();       break;
       case "report-sa":       SA.renderReport();         break;
       case "branches":   await SA.renderBranches();      break;
@@ -949,6 +953,8 @@ const Worker = {
           <span class="row-value">${u.schedule.start_time} – ${u.schedule.end_time}</span></div>` : ""}
         ${u.schedule?.lunch_start ? `<div class="card-row"><span class="row-label">Tushlik</span>
           <span class="row-value">${u.schedule.lunch_start} – ${u.schedule.lunch_end}</span></div>` : ""}
+        ${u.salary ? `<div class="card-row"><span class="row-label">Oylik maosh</span>
+          <span class="row-value">${u.salary.toLocaleString()} so'm</span></div>` : ""}
       </div>`);
   },
 };
@@ -1017,9 +1023,13 @@ const Admin = {
   },
 
   async _workerDetailView({wid}) {
-    const workers = await api("/api/admin/workers");
-    const w = workers.find(x=>x.id===wid);
+    const w = await api(`/api/admin/workers/${wid}`);
     if (!w) { setContent(emptyState("!","Ishchi topilmadi")); return; }
+    const MONTHS = ["","Yanvar","Fevral","Mart","Aprel","May","Iyun","Iyul","Avgust","Sentabr","Oktabr","Noyabr","Dekabr"];
+    const kpiRows = (w.kpi_records||[]).map(k =>
+      `<div class="card-row"><span class="row-label">${MONTHS[k.month]} ${k.year}</span>
+        <span class="row-value" style="color:var(--green)">${(k.amount||0).toLocaleString()} so'm${k.note?` · ${k.note}`:""}</span></div>`
+    ).join("") || `<div class="card-row"><span class="row-label" style="color:var(--hint)">KPI yozuvlar yo'q</span></div>`;
     setContent(`
       <div class="card">
         <div style="text-align:center;padding:20px 16px 16px">
@@ -1038,13 +1048,20 @@ const Admin = {
         <div class="card-row"><span class="row-label">Lavozim</span>
           <span class="row-value">${w.position?.name||"—"}</span></div>
         <div class="card-row"><span class="row-label">Jadval</span>
-          <span class="row-value">${w.schedule?.name||"—"}</span></div>
+          <span class="row-value">${w.schedule?.name||(w.custom_days?.length?"Custom":"—")}</span></div>
+        <div class="card-row"><span class="row-label">Oylik maosh</span>
+          <span class="row-value">${w.salary?(w.salary.toLocaleString()+" so'm"):"—"}</span></div>
         <div class="card-row"><span class="row-label">Bot holati</span>
           <span class="row-value">${w.telegram_id?"Bog'langan":"Bog'lanmagan"}</span></div>
       </div>
       ${w.invite_code ? `
         <div class="sec-hdr"><span class="sec-title">Tasdiqlash kodi</span></div>
         ${inviteBox("https://t.me/"+BOT_USERNAME+"?start=invite_"+w.invite_code)}` : ""}
+      <div class="sec-hdr" style="margin-top:4px">
+        <span class="sec-title">KPI bonuslar</span>
+        <span class="sec-add" onclick="Admin.kpiForm(${w.id})">+</span>
+      </div>
+      <div class="card">${kpiRows}</div>
       <button class="btn-secondary" onclick="Admin.regenInvite(${w.id})">Yangi tasdiqlash kodi</button>
       <button class="btn-danger" onclick="Admin.removeWorker(${w.id},'${w.full_name}')">Ishchini o'chirish</button>`);
   },
@@ -1055,6 +1072,50 @@ const Admin = {
       const link = `https://t.me/${BOT_USERNAME}?start=invite_${code}`;
       navigator.clipboard?.writeText(link);
     });
+  },
+
+  kpiForm(wid) {
+    pushView(async () => {
+      const now = new Date();
+      setContent(`
+        <div class="sec-hdr"><span class="sec-title">KPI bonus qo'shish</span></div>
+        <div class="card card-full">
+          <div class="form-group">
+            <label class="form-label">Yil</label>
+            <input class="form-input" type="number" id="kpi-yr" value="${now.getFullYear()}" min="2020" max="2099"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Oy</label>
+            <select class="form-input" id="kpi-mo">
+              ${["Yanvar","Fevral","Mart","Aprel","May","Iyun","Iyul","Avgust","Sentabr","Oktabr","Noyabr","Dekabr"]
+                .map((m,i)=>`<option value="${i+1}"${i===now.getMonth()?" selected":""}>${m}</option>`).join("")}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Miqdor (so'm)</label>
+            <input class="form-input" type="number" id="kpi-amt" placeholder="Masalan: 500000" min="0"/>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Izoh (ixtiyoriy)</label>
+            <input class="form-input" id="kpi-note" placeholder="Bonus sababi"/>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="Admin.saveKpi(${wid})">Saqlash</button>`);
+    });
+  },
+
+  async saveKpi(wid) {
+    hap.light();
+    const yr  = parseInt(document.getElementById("kpi-yr")?.value)||0;
+    const mo  = parseInt(document.getElementById("kpi-mo")?.value)||0;
+    const amt = parseInt(document.getElementById("kpi-amt")?.value)||0;
+    const note= document.getElementById("kpi-note")?.value.trim()||null;
+    if (!yr||!mo) { hap.warn(); toast("Yil va oyni kiriting"); return; }
+    try {
+      await api(`/api/admin/workers/${wid}/kpi`,{method:"POST",body:{year:yr,month:mo,amount:amt,note}});
+      hap.ok(); toast("KPI saqlandi");
+      popView();
+    } catch(e) { hap.err(); tg.showAlert(e.message); }
   },
 
   async regenInvite(wid) {
@@ -1085,6 +1146,18 @@ const Admin = {
     pushView(async () => {
       const [branches, positions, schedules] = await Promise.all([
         getLookup("branches"), getLookup("positions"), getLookup("schedules")]);
+      const days = ["Dushanba","Seshanba","Chorshanba","Payshanba","Juma","Shanba","Yakshanba"];
+      const customDays = days.map((d,i)=>`
+        <div style="margin-bottom:10px">
+          <div style="font-size:12px;color:var(--hint);font-weight:600;margin-bottom:6px">${d}</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="time" class="form-input" id="cd-${i}-st" value="${i<5?"09:00":"09:00"}" style="flex:1"/>
+            <span style="color:var(--hint)">–</span>
+            <input type="time" class="form-input" id="cd-${i}-et" value="${i<5?"18:00":"18:00"}" style="flex:1"/>
+            <label style="display:flex;align-items:center;gap:4px;flex-shrink:0;font-size:12px;cursor:pointer">
+              <input type="checkbox" id="cd-${i}-wd" ${i<5?"checked":""} style="width:16px;height:16px">Ish</label>
+          </div>
+        </div>`).join("");
       setContent(`
         <div class="sec-hdr"><span class="sec-title">Yangi ishchi</span></div>
         <div class="card card-full">
@@ -1106,28 +1179,53 @@ const Admin = {
               ${positions.map(p=>`<option value="${p.id}">${p.name}</option>`).join("")}
             </select>
           </div>
-          <div class="form-group" style="margin-bottom:0">
+          <div class="form-group">
+            <label class="form-label">Oylik maosh (so'm)</label>
+            <input class="form-input" type="number" id="nw-sal" placeholder="Masalan: 3000000" min="0"/>
+          </div>
+          <div class="form-group">
             <label class="form-label">Ish jadvali</label>
-            <select class="form-input" id="nw-sc">
+            <select class="form-input" id="nw-sc" onchange="Admin._toggleCustomDays(this.value)">
               <option value="">— Tanlang —</option>
               ${schedules.map(s=>`<option value="${s.id}">${s.name} (${s.start_time}–${s.end_time})</option>`).join("")}
+              <option value="custom">⚙️ Custom jadval (har kun alohida)</option>
             </select>
           </div>
+        </div>
+        <div id="custom-days-wrap" style="display:none">
+          <div class="sec-hdr"><span class="sec-title">Kunlik jadval</span></div>
+          <div class="card card-full">${customDays}</div>
         </div>
         <button class="btn-primary" onclick="Admin.createWorker()">Yaratish</button>`);
     });
   },
 
+  _toggleCustomDays(val) {
+    document.getElementById("custom-days-wrap").style.display = val==="custom" ? "block" : "none";
+  },
+
   async createWorker() {
     hap.light();
-    const name = document.getElementById("nw-name")?.value.trim();
-    const br   = parseInt(document.getElementById("nw-br")?.value)||0;
-    const pos  = parseInt(document.getElementById("nw-pos")?.value)||0;
-    const sc   = parseInt(document.getElementById("nw-sc")?.value)||0;
-    if (!name||!br||!pos||!sc) { hap.warn(); toast("Barcha maydonlarni to'ldiring"); return; }
+    const name  = document.getElementById("nw-name")?.value.trim();
+    const br    = parseInt(document.getElementById("nw-br")?.value)||0;
+    const pos   = parseInt(document.getElementById("nw-pos")?.value)||0;
+    const scVal = document.getElementById("nw-sc")?.value;
+    const sc    = scVal==="custom" ? null : (parseInt(scVal)||null);
+    const sal   = parseInt(document.getElementById("nw-sal")?.value)||null;
+    if (!name||!br||!pos||!scVal) { hap.warn(); toast("Barcha maydonlarni to'ldiring"); return; }
     try {
       const data = await api("/api/admin/workers",{method:"POST",body:{
-        full_name:name, branch_id:br, position_id:pos, schedule_id:sc}});
+        full_name:name, branch_id:br, position_id:pos, schedule_id:sc, salary:sal}});
+      if (scVal==="custom") {
+        const days=[];
+        for(let i=0;i<7;i++) days.push({
+          day_of_week:i,
+          start_time:document.getElementById(`cd-${i}-st`)?.value||"09:00",
+          end_time:document.getElementById(`cd-${i}-et`)?.value||"18:00",
+          is_work_day:document.getElementById(`cd-${i}-wd`)?.checked??true,
+        });
+        await api(`/api/admin/workers/${data.worker.id}/custom_schedule`,{method:"POST",body:{days}});
+      }
       hap.ok();
       setContent(`
         <div class="card" style="text-align:center;padding:28px 16px">
