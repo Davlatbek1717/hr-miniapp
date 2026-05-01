@@ -473,7 +473,7 @@ textarea.form-input{resize:none;line-height:1.5}
 <div id="toast"></div>
 
 <script>
-const API = window.HRBOT_API_URL || "https://moves-sand-house-rankings.trycloudflare.com";
+const API = window.HRBOT_API_URL || "https://configuring-secretariat-personnel-basement.trycloudflare.com";
 const BOT_USERNAME = "hr_boshqaruv_bot";
 
 const tg = window.Telegram.WebApp;
@@ -796,22 +796,46 @@ const Worker = {
       </div>`);
   },
 
+  _getGPS() {
+    // Birinchi yuqori aniqlik bilan, keyin past aniqlik fallback
+    const tryOnce = (opts) => new Promise((res, rej) =>
+      navigator.geolocation.getCurrentPosition(res, rej, opts));
+    return tryOnce({enableHighAccuracy:true, timeout:25000, maximumAge:30000})
+      .catch(err => {
+        if (err && err.code === 3) {
+          return tryOnce({enableHighAccuracy:false, timeout:15000, maximumAge:60000});
+        }
+        throw err;
+      });
+  },
+
+  _gpsErrorMessage(e) {
+    if (!e) return "GPS xatosi";
+    if (e.code === 1) return "❌ Joylashuvga ruxsat berilmagan.\n\nTelefon sozlamalaridan Telegram uchun joylashuv ruxsatini yoqing va qayta urinib ko'ring.";
+    if (e.code === 2) return "📡 GPS signali topilmadi.\n\nOchiq joyga chiqib (deraza yoniga yoki tashqariga) qayta urinib ko'ring.";
+    if (e.code === 3) return "⏱ GPS vaqti tugadi.\n\nOchiq joyga chiqib qayta urinib ko'ring yoki bir-ikki daqiqa kutib qayta bosing (GPS qizimoqda).";
+    return e.message || "GPS xatosi";
+  },
+
   checkin() {
     hap.light();
     tg.showPopup({
       title:"Joylashuvni aniqlash",
-      message:"GPS orqali joriy joylashuv tekshiriladi.",
+      message:"GPS orqali joriy joylashuv tekshiriladi.\nIltimos kuting...",
       buttons:[{id:"ok",type:"ok"},{type:"cancel"}],
     }, async btn => {
       if (btn !== "ok") return;
+      toast("📍 GPS aniqlanmoqda...");
       try {
-        const pos = await new Promise((res,rej) =>
-          navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:12000}));
+        const pos = await Worker._getGPS();
         const data = await api("/api/attendance/checkin",{method:"POST",body:{
           lat:pos.coords.latitude, lon:pos.coords.longitude, accuracy:pos.coords.accuracy||0}});
         hap.ok(); toast(data.message||"Qabul qilindi");
         Worker.renderHome();
-      } catch(e) { hap.err(); tg.showAlert(e.message||"GPS xatosi"); }
+      } catch(e) {
+        hap.err();
+        tg.showAlert(Worker._gpsErrorMessage(e));
+      }
     });
   },
 
